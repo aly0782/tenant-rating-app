@@ -20,7 +20,7 @@ interface PropertyHolding {
 
 export function useREITxFactory(factoryAddress?: string) {
   const { client } = useTonClient();
-  const { userAddress, sender } = useTonConnect();
+  const { userAddress, sendTransaction, tonConnectUI } = useTonConnect();
   const [factory, setFactory] = useState<REITxFactory | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -145,7 +145,7 @@ export function useREITxFactory(factoryAddress?: string) {
   };
 
   const buyTokens = async (propertyId: number, amount: bigint, pricePerToken: bigint) => {
-    if (!factory || !client || !sender) {
+    if (!factory || !client || !tonConnectUI) {
       throw new Error('Contract not initialized or wallet not connected');
     }
 
@@ -159,10 +159,15 @@ export function useREITxFactory(factoryAddress?: string) {
       .storeCoins(amount)
       .endCell();
 
-    await sender.send({
-      to: Address.parse(contractConfig.factoryAddress),
-      value,
-      body: message
+    await sendTransaction({
+      validUntil: Math.floor(Date.now() / 1000) + 600, // 10 minutes
+      messages: [
+        {
+          address: contractConfig.factoryAddress,
+          amount: value.toString(),
+          payload: message.toBoc().toString('base64')
+        }
+      ]
     });
 
     return {
@@ -182,7 +187,7 @@ export function useREITxFactory(factoryAddress?: string) {
     monthlyRent: bigint;
     uri: string;
   }) => {
-    if (!sender || !factory) {
+    if (!tonConnectUI || !factory) {
       throw new Error('Wallet not connected or factory not loaded');
     }
 
@@ -197,10 +202,15 @@ export function useREITxFactory(factoryAddress?: string) {
       .storeRef(beginCell().storeBuffer(Buffer.from(property.uri)).endCell())
       .endCell();
 
-    await sender.send({
-      to: Address.parse(contractConfig.factoryAddress),
-      value: toNano('0.1'),
-      body: message
+    await sendTransaction({
+      validUntil: Math.floor(Date.now() / 1000) + 600, // 10 minutes
+      messages: [
+        {
+          address: contractConfig.factoryAddress,
+          amount: toNano('0.1').toString(),
+          payload: message.toBoc().toString('base64')
+        }
+      ]
     });
 
     return true;
