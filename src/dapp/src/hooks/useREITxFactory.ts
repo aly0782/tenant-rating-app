@@ -227,12 +227,25 @@ export function useREITxFactory(factoryAddress?: string) {
         messages: [
           {
             address: contractConfig.factoryAddress,
-            amount: toNano('0.1').toString(),
+            amount: toNano('0.5').toString(), // Increased gas to 0.5 TON
             payload: message.toBoc().toString('base64')
           }
         ]
       });
       console.log('Transaction result:', result);
+      
+      // Wait a bit for the transaction to be processed
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
+      // Check if property was actually created
+      try {
+        const provider = (client as TonClient).provider(factory.address);
+        const newPropertyId = await factory.getNextPropertyId(provider as any);
+        console.log('New property ID after transaction:', newPropertyId);
+      } catch (err) {
+        console.error('Failed to check new property ID:', err);
+      }
+      
       return true;
     } catch (error) {
       console.error('Transaction failed:', error);
