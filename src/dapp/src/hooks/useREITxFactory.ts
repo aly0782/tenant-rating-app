@@ -198,6 +198,16 @@ export function useREITxFactory(factoryAddress?: string) {
       throw new Error('Wallet not connected or factory not loaded');
     }
 
+    console.log('Creating property with:', {
+      name: property.name,
+      location: property.location,
+      totalSupply: property.totalSupply.toString(),
+      pricePerToken: property.pricePerToken.toString(),
+      monthlyRent: property.monthlyRent.toString(),
+      uri: property.uri,
+      contractAddress: contractConfig.factoryAddress
+    });
+
     const message = beginCell()
       .storeUint(0x12345678, 32) // op::create_property
       .storeUint(0, 64) // query_id
@@ -209,18 +219,25 @@ export function useREITxFactory(factoryAddress?: string) {
       .storeRef(beginCell().storeBuffer(Buffer.from(property.uri)).endCell())
       .endCell();
 
-    await sendTransaction({
-      validUntil: Math.floor(Date.now() / 1000) + 600, // 10 minutes
-      messages: [
-        {
-          address: contractConfig.factoryAddress,
-          amount: toNano('0.1').toString(),
-          payload: message.toBoc().toString('base64')
-        }
-      ]
-    });
+    console.log('Message payload:', message.toBoc().toString('base64'));
 
-    return true;
+    try {
+      const result = await sendTransaction({
+        validUntil: Math.floor(Date.now() / 1000) + 600, // 10 minutes
+        messages: [
+          {
+            address: contractConfig.factoryAddress,
+            amount: toNano('0.1').toString(),
+            payload: message.toBoc().toString('base64')
+          }
+        ]
+      });
+      console.log('Transaction result:', result);
+      return true;
+    } catch (error) {
+      console.error('Transaction failed:', error);
+      throw error;
+    }
   };
 
   const getPropertyHolders = async (propertyId: number): Promise<Array<{
