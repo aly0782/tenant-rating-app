@@ -2,6 +2,7 @@ import { CHAIN, ITonConnect } from "@tonconnect/sdk";
 import { TonClient4 } from "@ton/ton";
 import { getHttpV4Endpoint } from "@orbs-network/ton-access";
 import { Address, beginCell, Cell, Sender, SenderArguments, SendMode, storeStateInit } from "@ton/core";
+import { Buffer } from "buffer";
 import { ParamsWithValue } from "./components/ActionCard";
 import { Parameters } from "./utils/wrappersConfigTypes";
 import { TonConnectUI } from "@tonconnect/ui-react";
