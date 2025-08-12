@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Address, fromNano, toNano } from '@ton/core';
 import { useTonClient } from './useTonClient';
 import { useTonConnect } from './useTonConnect';
-import { REITxFactory, PropertyInfo } from '../../../../wrappers/REITxFactory';
+import { REITxFactory, PropertyInfo } from '../wrappers/REITxFactory';
 import { TonClient } from '@ton/ton';
 
 interface PropertyHolding {
