@@ -1,0 +1,6 @@
+;; Common constants for TON contracts
+
+;; Message modes
+const int CARRY_REMAINING_GAS = 64;
+const int IGNORE_ERRORS = 2;
+const int DESTROY_IF_ZERO = 32;

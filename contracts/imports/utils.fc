@@ -1,0 +1,6 @@
+;; Utility functions for REITx contracts
+
+;; Helper to check if address is zero
+int is_zero_address?(slice addr) inline {
+    return addr.slice_empty?();
+}

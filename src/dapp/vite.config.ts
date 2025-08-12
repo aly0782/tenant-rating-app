@@ -5,7 +5,8 @@ import inject from "@rollup/plugin-inject";
 
 export default defineConfig({
   plugins: [react()],
-  base: process.env.GH_PAGES ? "/blueproject/" : "./",
+  // Use correct base path when deploying to GitHub Pages (set GH_PAGES=1 in env)
+  base: process.env.GH_PAGES ? "/blueprint-scaffold/" : "./",
   optimizeDeps: {
     esbuildOptions: {
       define: {
