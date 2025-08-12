@@ -2,6 +2,7 @@ import { Box, Flex, Input, Text } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
 import { FieldProps } from "../ActionCard";
 import { BaseField } from "./Field";
+import { Buffer } from "buffer";
 
 export function BufferField(props: FieldProps) {
   function parseInputValue(value: string): { result: any; correct: boolean } {
