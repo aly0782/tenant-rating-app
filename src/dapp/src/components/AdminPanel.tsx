@@ -56,6 +56,7 @@ import { useTonConnect } from '../hooks/useTonConnect';
 import { useREITxFactory } from '../hooks/useREITxFactory';
 import { toNano, fromNano, Address, beginCell } from '@ton/core';
 import contractConfig from '../config/contract.json';
+import { PinataUploader, buildPropertyMetadata } from '../utils/pinata';
 
 interface PropertyForm {
   name: string;
@@ -66,6 +67,13 @@ interface PropertyForm {
   uri: string;
   description: string;
   images: string[];
+  propertyType: string;
+  yearBuilt: string;
+  squareFootage: string;
+  bedrooms: string;
+  bathrooms: string;
+  amenities: string;
+  imageUrls: string;
 }
 
 interface AdminAddress {
@@ -95,8 +103,16 @@ export function AdminPanel() {
     monthlyRent: '',
     uri: '',
     description: '',
-    images: []
+    images: [],
+    propertyType: '',
+    yearBuilt: '',
+    squareFootage: '',
+    bedrooms: '',
+    bathrooms: '',
+    amenities: '',
+    imageUrls: ''
   });
+  const [isUploadingMetadata, setIsUploadingMetadata] = useState(false);
 
   // Form state for new admin
   const [newAdminAddress, setNewAdminAddress] = useState('');
@@ -215,18 +231,76 @@ export function AdminPanel() {
       
       // Validate form
       if (!propertyForm.name || !propertyForm.location || !propertyForm.totalSupply || 
-          !propertyForm.pricePerToken) {
+          !propertyForm.pricePerToken || !propertyForm.description) {
         throw new Error('Please fill all required fields');
       }
       
-      // Create property on blockchain
+      // Check for PINATA_JWT in environment
+      const pinataJwt = import.meta.env.VITE_PINATA_JWT;
+      if (!pinataJwt) {
+        throw new Error('PINATA_JWT not configured. Please add VITE_PINATA_JWT to your .env file');
+      }
+      
+      // Upload metadata to Pinata
+      setIsUploadingMetadata(true);
+      toast({
+        title: 'Uploading metadata to IPFS...',
+        status: 'info',
+        duration: 3000,
+        isClosable: true,
+      });
+      
+      const pinata = new PinataUploader(pinataJwt);
+      
+      // Process image URLs from textarea (comma or newline separated)
+      const imageUrls = propertyForm.imageUrls
+        .split(/[,\n]/)
+        .map(url => url.trim())
+        .filter(url => url.length > 0);
+      
+      // Process amenities from comma-separated string
+      const amenities = propertyForm.amenities
+        .split(',')
+        .map(a => a.trim())
+        .filter(a => a.length > 0);
+      
+      // Build metadata object
+      const metadata = buildPropertyMetadata({
+        name: propertyForm.name,
+        location: propertyForm.location,
+        description: propertyForm.description,
+        images: imageUrls,
+        totalSupply: propertyForm.totalSupply,
+        pricePerToken: propertyForm.pricePerToken,
+        monthlyRent: propertyForm.monthlyRent,
+        propertyType: propertyForm.propertyType || undefined,
+        yearBuilt: propertyForm.yearBuilt || undefined,
+        squareFootage: propertyForm.squareFootage || undefined,
+        bedrooms: propertyForm.bedrooms ? parseInt(propertyForm.bedrooms) : undefined,
+        bathrooms: propertyForm.bathrooms ? parseInt(propertyForm.bathrooms) : undefined,
+        amenities: amenities.length > 0 ? amenities : undefined,
+      });
+      
+      // Upload to Pinata
+      const metadataUri = await pinata.uploadJSON(metadata);
+      setIsUploadingMetadata(false);
+      
+      toast({
+        title: 'Metadata uploaded successfully',
+        description: `IPFS URI: ${metadataUri}`,
+        status: 'success',
+        duration: 5000,
+        isClosable: true,
+      });
+      
+      // Create property on blockchain with generated URI
       await createProperty({
         name: propertyForm.name,
         location: propertyForm.location,
         totalSupply: toNano(propertyForm.totalSupply),
         pricePerToken: toNano(propertyForm.pricePerToken),
         monthlyRent: toNano(propertyForm.monthlyRent || '0'),
-        uri: propertyForm.uri || '',
+        uri: metadataUri,
       });
       
       toast({
@@ -246,12 +320,20 @@ export function AdminPanel() {
         monthlyRent: '',
         uri: '',
         description: '',
-        images: []
+        images: [],
+        propertyType: '',
+        yearBuilt: '',
+        squareFootage: '',
+        bedrooms: '',
+        bathrooms: '',
+        amenities: '',
+        imageUrls: ''
       });
       
       // Reload properties
       await loadAdminData();
     } catch (error: any) {
+      setIsUploadingMetadata(false);
       toast({
         title: 'Error creating property',
         description: error.message || 'Failed to create property',
@@ -783,24 +865,93 @@ export function AdminPanel() {
                 />
               </FormControl>
               
-              <FormControl>
-                <FormLabel>Metadata URI</FormLabel>
-                <Input
-                  placeholder="https://..."
-                  value={propertyForm.uri}
-                  onChange={(e) => setPropertyForm({ ...propertyForm, uri: e.target.value })}
-                />
-              </FormControl>
-              
-              <FormControl>
+              <FormControl isRequired>
                 <FormLabel>Description</FormLabel>
                 <Textarea
-                  placeholder="Property description..."
+                  placeholder="Detailed property description..."
                   value={propertyForm.description}
                   onChange={(e) => setPropertyForm({ ...propertyForm, description: e.target.value })}
                   rows={4}
                 />
               </FormControl>
+              
+              <FormControl>
+                <FormLabel>Property Images (URLs)</FormLabel>
+                <Textarea
+                  placeholder="Enter image URLs (one per line or comma-separated)"
+                  value={propertyForm.imageUrls}
+                  onChange={(e) => setPropertyForm({ ...propertyForm, imageUrls: e.target.value })}
+                  rows={3}
+                />
+              </FormControl>
+              
+              <HStack w="full">
+                <FormControl>
+                  <FormLabel>Property Type</FormLabel>
+                  <Input
+                    placeholder="e.g., Apartment, Villa, Condo"
+                    value={propertyForm.propertyType}
+                    onChange={(e) => setPropertyForm({ ...propertyForm, propertyType: e.target.value })}
+                  />
+                </FormControl>
+                
+                <FormControl>
+                  <FormLabel>Year Built</FormLabel>
+                  <Input
+                    placeholder="e.g., 2020"
+                    value={propertyForm.yearBuilt}
+                    onChange={(e) => setPropertyForm({ ...propertyForm, yearBuilt: e.target.value })}
+                  />
+                </FormControl>
+              </HStack>
+              
+              <HStack w="full">
+                <FormControl>
+                  <FormLabel>Square Footage</FormLabel>
+                  <Input
+                    placeholder="e.g., 1500 sq ft"
+                    value={propertyForm.squareFootage}
+                    onChange={(e) => setPropertyForm({ ...propertyForm, squareFootage: e.target.value })}
+                  />
+                </FormControl>
+                
+                <FormControl>
+                  <FormLabel>Bedrooms</FormLabel>
+                  <Input
+                    placeholder="e.g., 3"
+                    type="number"
+                    value={propertyForm.bedrooms}
+                    onChange={(e) => setPropertyForm({ ...propertyForm, bedrooms: e.target.value })}
+                  />
+                </FormControl>
+                
+                <FormControl>
+                  <FormLabel>Bathrooms</FormLabel>
+                  <Input
+                    placeholder="e.g., 2"
+                    type="number"
+                    value={propertyForm.bathrooms}
+                    onChange={(e) => setPropertyForm({ ...propertyForm, bathrooms: e.target.value })}
+                  />
+                </FormControl>
+              </HStack>
+              
+              <FormControl>
+                <FormLabel>Amenities</FormLabel>
+                <Textarea
+                  placeholder="Enter amenities (comma-separated)\ne.g., Pool, Gym, Parking, Garden"
+                  value={propertyForm.amenities}
+                  onChange={(e) => setPropertyForm({ ...propertyForm, amenities: e.target.value })}
+                  rows={2}
+                />
+              </FormControl>
+              
+              {propertyForm.uri && (
+                <Alert status="info">
+                  <AlertIcon />
+                  <Text fontSize="sm">Metadata URI: {propertyForm.uri}</Text>
+                </Alert>
+              )}
             </VStack>
           </ModalBody>
           
@@ -811,7 +962,8 @@ export function AdminPanel() {
             <Button
               colorScheme="blue"
               onClick={handleCreateProperty}
-              isLoading={isLoading}
+              isLoading={isLoading || isUploadingMetadata}
+              loadingText={isUploadingMetadata ? 'Uploading Metadata...' : 'Creating Property...'}
             >
               {selectedProperty ? 'Update Property' : 'Create Property'}
             </Button>

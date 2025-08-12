@@ -1,6 +1,7 @@
-import { Box, ChakraProvider, Container, Flex, Grid, GridItem, Heading, Text, VStack, Button, Image } from "@chakra-ui/react";
+import { Box, ChakraProvider, Container, Flex, Grid, GridItem, Heading, Text, VStack, Button, Image, HStack } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
 import { ConnectButton } from "./components/ConnectButton";
+import { DarkModeToggle } from "./components/DarkModeToggle";
 import Footer from "./components/Footer";
 import BodyRoot from "./BodyRoot";
 import NetworkBadge from "./components/NetBadge";
@@ -149,14 +150,15 @@ function App() {
         {/* Navigation Header */}
         <Box
           as="nav"
-          bg="white"
+          bg="bg"
           borderBottom="1px solid"
-          borderColor="neutral.200"
+          borderColor="border"
           position="sticky"
           top="0"
           zIndex="999"
           backdropFilter="blur(10px)"
-          bgColor="rgba(255, 255, 255, 0.95)"
+          _light={{ bgColor: "rgba(255, 255, 255, 0.95)" }}
+          _dark={{ bgColor: "rgba(26, 32, 44, 0.95)" }}
           h={{ base: "80px", md: "auto" }}
         >
           <Container maxW="container.xl" py={{ base: 3, md: 4 }} h="full">
@@ -261,7 +263,10 @@ function App() {
                   </Button>
                 </Flex>
               </Flex>
-              <ConnectButton />
+              <HStack spacing={2}>
+                <DarkModeToggle />
+                <ConnectButton />
+              </HStack>
             </Flex>
           </Container>
         </Box>

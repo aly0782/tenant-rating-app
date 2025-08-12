@@ -2,7 +2,7 @@ import { extendTheme, withDefaultColorScheme, ThemeConfig } from "@chakra-ui/rea
 
 const config: ThemeConfig = {
   initialColorMode: "light",
-  useSystemColorMode: false,
+  useSystemColorMode: true,
 };
 
 const colors = {
@@ -205,13 +205,13 @@ const components = {
     },
   },
   Card: {
-    baseStyle: {
+    baseStyle: ({ colorMode }) => ({
       container: {
         borderRadius: "none",
         boxShadow: "sm",
         border: "1px solid",
-        borderColor: "neutral.200",
-        bg: "white",
+        borderColor: colorMode === 'dark' ? 'gray.700' : 'neutral.200',
+        bg: colorMode === 'dark' ? 'gray.800' : 'white',
         overflow: "hidden",
         transition: "all 0.3s ease",
         _hover: {
@@ -219,7 +219,7 @@ const components = {
           transform: "translateY(-4px)",
         },
       },
-    },
+    }),
   },
   Input: {
     baseStyle: {
@@ -278,18 +278,43 @@ const components = {
 };
 
 const styles = {
-  global: {
+  global: ({ colorMode }) => ({
     "html, body": {
-      backgroundColor: "neutral.50",
-      color: "neutral.900",
+      backgroundColor: colorMode === 'dark' ? 'gray.900' : 'neutral.50',
+      color: colorMode === 'dark' ? 'gray.100' : 'neutral.900',
       lineHeight: "base",
       fontFamily: "body",
     },
     "*::placeholder": {
-      color: "neutral.400",
+      color: colorMode === 'dark' ? 'gray.500' : 'neutral.400',
     },
     "*, *::before, &::after": {
-      borderColor: "neutral.200",
+      borderColor: colorMode === 'dark' ? 'gray.700' : 'neutral.200',
+    },
+  }),
+};
+
+const semanticTokens = {
+  colors: {
+    text: {
+      default: "gray.900",
+      _dark: "gray.100",
+    },
+    bg: {
+      default: "white",
+      _dark: "gray.800",
+    },
+    border: {
+      default: "gray.200",
+      _dark: "gray.700",
+    },
+    card: {
+      default: "white",
+      _dark: "gray.800",
+    },
+    hover: {
+      default: "gray.50",
+      _dark: "gray.700",
     },
   },
 };
@@ -307,6 +332,7 @@ const baseTheme = {
   shadows,
   components,
   styles,
+  semanticTokens,
 };
 
 export const sendTheme = extendTheme(baseTheme);
