@@ -283,38 +283,44 @@ export const ActionCard: React.FC<ActionCardProps> = ({
     return outsWithNames;
   };
 
-  const shadow = () => (paramFields.length === 0 ? "xl" : "none");
-  const rounding = () => (paramFields.length === 0 ? "18" : "none");
-  const width = () => (paramFields.length === 0 ? "0" : "100%");
-  const buttonPadding = () => (paramFields.length === 0 ? "-8" : "-3");
+  const shadow = () => "sm";
+  const rounding = () => "none";
+  const width = () => "100%";
+  const buttonPadding = () => "4";
 
   return visible ? (
-    <Center>
+    <Box>
       <Card
         variant="outline"
-        mb="50"
-        boxShadow={[shadow(), "xl", "xl", "xl"]}
-        p={{ base: "3", sm: "6" }}
-        rounded={[rounding(), "18", "18", "18"]}
-        minWidth={[width(), "0", "0", "0"]}
+        mb="8"
+        boxShadow={shadow()}
+        p={{ base: "6", sm: "8" }}
+        borderRadius={rounding()}
+        minWidth={width()}
         whiteSpace="nowrap"
+        bg="white"
+        border="1px solid"
+        borderColor="neutral.200"
+        transition="all 0.3s"
+        _hover={{
+          boxShadow: "lg",
+          transform: "translateY(-4px)"
+        }}
       >
-        <CardHeader marginTop={["0", "-2", "-2", "-2"]}>
-          <Center>
-            <Heading size="lg">{methodConfig.tabName || methodName}</Heading>
-          </Center>
+        <CardHeader>
+          <Heading size="md" fontWeight="bold" letterSpacing="tight">
+            {methodConfig.tabName || methodName}
+          </Heading>
         </CardHeader>
-        <CardBody marginTop="-10" marginBottom="-5">
+        <CardBody pt="0">
           {isDeploy && !!deploy?.configType && (
             <>
               <ul>
                 {configFields.map((configField) => {
                   return <configField.Field key={configField.props.paramName} {...configField.props} />;
                 })}
-              </ul>{" "}
-              <Center>
-                <Divider mb="6" width="60%" />
-              </Center>
+              </ul>
+              <Divider my="6" borderColor="neutral.200" />
             </>
           )}
           <ul>
@@ -326,40 +332,46 @@ export const ActionCard: React.FC<ActionCardProps> = ({
         <CardFooter>
           <Flex direction="column" flex="1" mb={["0", "-2", "-2", "-2"]}>
             <Button
-              height="12"
+              size="lg"
               mt={buttonPadding()}
-              mb="-1"
-              rounded="100"
-              flex="1"
-              py="4"
+              variant="solid"
+              width="full"
               isLoading={isInactive()}
               loadingText={inactiveButtonText()}
               spinner={<Circle />}
               onClick={handleAction}
+              textTransform="uppercase"
+              letterSpacing="wider"
+              fontWeight="medium"
             >
               {isGet ? "Execute" : "Send transaction"}
             </Button>
             <Collapse in={!!getResult} animateOpacity>
-              <Flex mt="8" direction="column" maxWidth={["22em", "45px", "58em", "70em"]} whiteSpace="normal">
-                <Text fontSize="14" color="gray.500" fontWeight="semibold" align="center">
+              <Box mt="6" p="4" bg="neutral.50" borderRadius="none" border="1px solid" borderColor="neutral.200">
+                <Text fontSize="sm" color="neutral.600" fontWeight="semibold" mb="2">
                   {isDeploy ? "The new contract address:" : "Result:"}
                 </Text>
                 {stringifyResult(getResult).map(({ name, strValue }) => (
                   <Box key={name} mt="2">
                     <Text
                       key={name + "_txt"}
-                      _hover={{ color: "blue.500" }}
+                      _hover={{ color: "neutral.700", bg: "neutral.100" }}
                       cursor="pointer"
+                      p="2"
+                      borderRadius="sm"
+                      transition="all 0.2s"
+                      fontFamily="mono"
+                      fontSize="sm"
                       onClick={() => {
                         handleCopy(strValue);
                       }}
                     >
                       {name ? (
                         <>
-                          <Badge key={name + "_badge"}>{name}: </Badge> {strValue}
+                          <Badge variant="subtle" colorScheme="gray" key={name + "_badge"}>{name}: </Badge> {strValue}
                         </>
                       ) : (
-                        <Center>
+                        <Flex align="center" justify="center">
                           {strValue}
                           {isDeploy && (
                             <a
@@ -369,41 +381,41 @@ export const ActionCard: React.FC<ActionCardProps> = ({
                               target="_blank"
                               rel="noreferrer"
                             >
-                              <IconButton size="xs" aria-label="Scanner" variant="link" icon={<Search2Icon />} />
+                              <IconButton size="sm" aria-label="Scanner" variant="ghost" icon={<Search2Icon />} ml="2" />
                             </a>
                           )}
-                        </Center>
+                        </Flex>
                       )}
                     </Text>
                   </Box>
                 ))}
-              </Flex>
+              </Box>
             </Collapse>
 
             <Collapse in={!!error} animateOpacity>
-              <Flex mt="8" direction="column" maxWidth={["22em", "45px", "58em", "70em"]} whiteSpace="normal">
-                <Text fontSize="14" color="gray.500" fontWeight="semibold" align="center">
+              <Box mt="6" p="4" bg="red.50" borderRadius="none" border="1px solid" borderColor="red.200">
+                <Text fontSize="sm" color="red.600" fontWeight="semibold" mb="2">
                   Error:
                 </Text>
-                {stringifyResult(getResult).map(({ name, strValue }) => (
-                  <Box key={name} mt="2">
-                    <Text
-                      _hover={{ color: "red.300" }}
-                      color="red.500"
-                      cursor="pointer"
-                      key={name}
-                      onClick={() => handleCopy(strValue)}
-                    >
-                      {error}
-                    </Text>
-                  </Box>
-                ))}
-              </Flex>
+                <Text
+                  color="red.700"
+                  cursor="pointer"
+                  onClick={() => handleCopy(error || "")}
+                  fontFamily="mono"
+                  fontSize="sm"
+                  p="2"
+                  _hover={{ bg: "red.100" }}
+                  borderRadius="sm"
+                  transition="all 0.2s"
+                >
+                  {error}
+                </Text>
+              </Box>
             </Collapse>
           </Flex>
         </CardFooter>
       </Card>
-    </Center>
+    </Box>
   ) : (
     <></>
   );

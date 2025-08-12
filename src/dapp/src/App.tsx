@@ -1,31 +1,66 @@
-import { Box, ChakraProvider, Flex, Spacer } from "@chakra-ui/react";
+import { Box, ChakraProvider, Container, Flex, Grid, GridItem, Heading, Text, VStack, Button, Image } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
-import { AppTitle } from "./components/AppTitle";
 import { ConnectButton } from "./components/ConnectButton";
 import Footer from "./components/Footer";
 import BodyRoot from "./BodyRoot";
 import NetworkBadge from "./components/NetBadge";
-import { getTheme, sendTheme } from "./utils/theme";
-import { THEME, useTonConnectUI } from "@tonconnect/ui-react";
+import Whitepaper from "./components/Whitepaper";
+import RiskDisclosure from "./components/RiskDisclosure";
+import { REITxPropertiesChakra } from "./components/REITxPropertiesChakra";
+import { InvestorDashboard } from "./components/InvestorDashboard";
+import { modernTheme } from "./utils/theme";
+import { THEME, useTonConnectUI, useTonAddress } from "@tonconnect/ui-react";
 
 function App() {
   const [isGetMethods, setIsGetMethods] = useState(false);
+  const [isWhitepaperRoute, setIsWhitepaperRoute] = useState(false);
+  const [isRiskDisclosureRoute, setIsRiskDisclosureRoute] = useState(false);
+  const [isDashboardRoute, setIsDashboardRoute] = useState(false);
   const [pathParams, setPathParams] = useState<{
     wrapper?: string;
     method?: string;
     address?: string;
   } | null>(null);
   const [tcUI, setTcUIOptions] = useTonConnectUI();
+  const tonAddress = useTonAddress();
+
+  // Navigation function
+  const navigateTo = (route: string) => {
+    const url = new URL(window.location.href);
+    url.pathname = `/${route}`;
+    window.history.pushState({}, '', url.toString());
+    window.location.reload();
+  };
+
+  const handleGetStarted = async () => {
+    if (!tonAddress) {
+      await tcUI.connectWallet();
+    } else {
+      // Navigate to properties or dashboard when wallet is connected
+      // For now, just scroll to properties section
+      const propertiesSection = document.querySelector('.properties-section');
+      if (propertiesSection) {
+        propertiesSection.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
+
+  const navigateHome = () => {
+    const url = new URL(window.location.href);
+    url.pathname = '/';
+    window.history.pushState({}, '', url.toString());
+    window.location.reload();
+  };
 
   useEffect(() => {
     tcUI.connector.restoreConnection();
     setTcUIOptions({
       uiPreferences: {
         theme: THEME.LIGHT,
-        borderRadius: "s",
+        borderRadius: "none",
         colorsSet: {
           [THEME.LIGHT]: {
-            accent: "#2b6cb0",
+            accent: "#000000",
           },
         },
       },
@@ -42,6 +77,24 @@ function App() {
     const urlStringNoBase = window.location.href.replace(base, origUrl.origin);
     const urlToParse = new URL(urlStringNoBase);
     const pathParts = urlToParse.pathname.split("/").filter((part) => part !== "");
+
+    // Check if this is the whitepaper route
+    if (pathParts[0] === "whitepaper") {
+      setIsWhitepaperRoute(true);
+      return;
+    }
+    
+    // Check if this is the risk-disclosure route
+    if (pathParts[0] === "risk-disclosure") {
+      setIsRiskDisclosureRoute(true);
+      return;
+    }
+    
+    // Check if this is the dashboard route
+    if (pathParts[0] === "dashboard") {
+      setIsDashboardRoute(true);
+      return;
+    }
 
     let providedWrapperFromPath: string | undefined;
     let providedMethodFromPath: string | undefined;
@@ -66,29 +119,238 @@ function App() {
   }, []);
 
   return (
-    <ChakraProvider theme={isGetMethods ? getTheme : sendTheme}>
+    <ChakraProvider theme={modernTheme}>
       <NetworkBadge />
-      <Box padding={["30px 0px", "20px 20px", "20px 70px", "20px 70px"]} backgroundColor="#f7f9fb" min-height="100vh">
-        <Box minHeight="90vh">
-          <Box fontFamily="Inter" bg="#F7F9FB">
-            <Flex>
-              <AppTitle title={import.meta.env.VITE_REACT_APP_TITLE || "Blueprint Dapp"} />
-              <Spacer />
-              <Flex alignItems="center" mt="-6">
-                <ConnectButton />
+      <Box bg="neutral.50" minH="100vh">
+        {/* Navigation Header */}
+        <Box
+          as="nav"
+          bg="white"
+          borderBottom="1px solid"
+          borderColor="neutral.200"
+          position="sticky"
+          top="0"
+          zIndex="999"
+          backdropFilter="blur(10px)"
+          bgColor="rgba(255, 255, 255, 0.95)"
+        >
+          <Container maxW="container.xl" py={4}>
+            <Flex align="center" justify="space-between">
+              <Flex align="center" gap={8}>
+                <Heading 
+                  size="lg" 
+                  fontWeight="bold" 
+                  letterSpacing="tight"
+                  cursor="pointer"
+                  onClick={navigateHome}
+                  _hover={{ color: "blue.600" }}
+                >
+                  {import.meta.env.VITE_REACT_APP_TITLE || "REITx on TON"}
+                </Heading>
+                <Flex gap={6} display={{ base: "none", md: "flex" }}>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    fontWeight="medium"
+                    onClick={navigateHome}
+                    bg={!isWhitepaperRoute && !isRiskDisclosureRoute && !isDashboardRoute && !pathParams?.wrapper ? "gray.100" : "transparent"}
+                  >
+                    Home
+                  </Button>
+                  <Button variant="ghost" size="sm" fontWeight="medium">
+                    Properties
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    fontWeight="medium"
+                    onClick={() => navigateTo('dashboard')}
+                    bg={isDashboardRoute ? "gray.100" : "transparent"}
+                  >
+                    Dashboard
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    fontWeight="medium" 
+                    onClick={() => navigateTo('whitepaper')}
+                    bg={isWhitepaperRoute ? "gray.100" : "transparent"}
+                  >
+                    Whitepaper
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    fontWeight="medium" 
+                    onClick={() => navigateTo('risk-disclosure')}
+                    bg={isRiskDisclosureRoute ? "gray.100" : "transparent"}
+                  >
+                    Risk Disclosure
+                  </Button>
+                </Flex>
               </Flex>
+              <ConnectButton />
             </Flex>
-            {pathParams && (
-              <BodyRoot
-                areGetMethods={isGetMethods}
-                setIsGetMethods={setIsGetMethods}
-                wrapperFromUrl={pathParams.wrapper}
-                methodFromUrl={pathParams.method}
-                addressFromUrl={pathParams.address}
-              />
-            )}
-          </Box>
+          </Container>
         </Box>
+
+        {/* Hero Section */}
+        {!isWhitepaperRoute && !isRiskDisclosureRoute && !isDashboardRoute && !pathParams?.wrapper && (
+          <Box
+            position="relative"
+            h={{ base: "60vh", md: "70vh" }}
+            bg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+            overflow="hidden"
+          >
+            <Box
+              position="absolute"
+              inset="0"
+              bgImage="url('https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3')"
+              bgSize="cover"
+              bgPosition="center"
+              opacity="0.3"
+            />
+            <Container maxW="container.xl" h="full" position="relative">
+              <VStack
+                justify="center"
+                h="full"
+                align="flex-start"
+                spacing={6}
+                maxW={{ base: "100%", md: "60%" }}
+              >
+                <Heading
+                  size={{ base: "2xl", md: "3xl", lg: "4xl" }}
+                  color="white"
+                  fontWeight="bold"
+                  lineHeight="shorter"
+                >
+                  Real Estate Investment on TON Blockchain
+                </Heading>
+                <Text fontSize={{ base: "lg", md: "xl" }} color="whiteAlpha.900" lineHeight="tall">
+                  Invest in tokenized Lisbon properties through TON blockchain. 
+                  Own fractions of real estate and earn monthly yields in TON.
+                </Text>
+                <Flex gap={4} flexWrap="wrap">
+                  <Button 
+                    size="lg" 
+                    variant="solid" 
+                    bg="white" 
+                    color="black" 
+                    _hover={{ bg: "gray.100" }}
+                    onClick={handleGetStarted}
+                  >
+                    {tonAddress ? "View Properties" : "Get Started"}
+                  </Button>
+                  <Button 
+                    size="lg" 
+                    variant="outline" 
+                    color="white" 
+                    borderColor="white" 
+                    _hover={{ bg: "whiteAlpha.200" }}
+                    onClick={() => navigateTo('whitepaper')}
+                  >
+                    Learn More
+                  </Button>
+                </Flex>
+              </VStack>
+            </Container>
+          </Box>
+        )}
+
+        {/* Main Content */}
+        <Container maxW="container.xl" py={{ base: 8, md: 16 }}>
+          {isWhitepaperRoute ? (
+            <Whitepaper />
+          ) : isRiskDisclosureRoute ? (
+            <RiskDisclosure />
+          ) : isDashboardRoute ? (
+            <InvestorDashboard />
+          ) : pathParams?.wrapper ? (
+            <Grid templateColumns={{ base: "1fr", lg: "1fr" }} gap={8}>
+              <GridItem>
+                <BodyRoot
+                  areGetMethods={isGetMethods}
+                  setIsGetMethods={setIsGetMethods}
+                  wrapperFromUrl={pathParams.wrapper}
+                  methodFromUrl={pathParams.method}
+                  addressFromUrl={pathParams.address}
+                />
+              </GridItem>
+            </Grid>
+          ) : (
+            <>
+              {/* REITx Properties Section */}
+              <Box className="properties-section">
+                <REITxPropertiesChakra />
+              </Box>
+              
+              {/* Feature Grid */}
+              <Grid templateColumns={{ base: "1fr", md: "repeat(3, 1fr)" }} gap={8} mt={16}>
+                <GridItem>
+                  <VStack
+                    p={8}
+                    bg="white"
+                    border="1px solid"
+                    borderColor="neutral.200"
+                    align="flex-start"
+                    spacing={4}
+                    h="full"
+                    transition="all 0.3s"
+                    _hover={{ boxShadow: "lg", transform: "translateY(-4px)" }}
+                  >
+                    <Box w={12} h={12} bg="blue.600" borderRadius="md" />
+                    <Heading size="md">Fractional Ownership</Heading>
+                    <Text color="neutral.600">
+                      Own a piece of premium Lisbon real estate with as little as 100 TON. 
+                      Diversify your portfolio across multiple tokenized properties.
+                    </Text>
+                  </VStack>
+                </GridItem>
+                <GridItem>
+                  <VStack
+                    p={8}
+                    bg="white"
+                    border="1px solid"
+                    borderColor="neutral.200"
+                    align="flex-start"
+                    spacing={4}
+                    h="full"
+                    transition="all 0.3s"
+                    _hover={{ boxShadow: "lg", transform: "translateY(-4px)" }}
+                  >
+                    <Box w={12} h={12} bg="green.600" borderRadius="md" />
+                    <Heading size="md">Monthly TON Yields</Heading>
+                    <Text color="neutral.600">
+                      Earn passive income from rental payments and revenue sharing, 
+                      paid monthly in TON directly to your wallet.
+                    </Text>
+                  </VStack>
+                </GridItem>
+                <GridItem>
+                  <VStack
+                    p={8}
+                    bg="white"
+                    border="1px solid"
+                    borderColor="neutral.200"
+                    align="flex-start"
+                    spacing={4}
+                    h="full"
+                    transition="all 0.3s"
+                    _hover={{ boxShadow: "lg", transform: "translateY(-4px)" }}
+                  >
+                    <Box w={12} h={12} bg="purple.600" borderRadius="md" />
+                    <Heading size="md">Blockchain Transparency</Heading>
+                    <Text color="neutral.600">
+                      Track ownership, rental income, and property performance in real-time. 
+                      All transactions secured on the TON blockchain.
+                    </Text>
+                  </VStack>
+                </GridItem>
+              </Grid>
+            </>
+          )}
+        </Container>
+
         <Footer />
       </Box>
     </ChakraProvider>

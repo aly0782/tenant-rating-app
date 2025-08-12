@@ -61,7 +61,7 @@ export const scaffold: Runner = async (args: Args, ui: UIProvider) => {
       .join(" ");
     const envFile = path.join(DAPP_DIR, ".env");
     const env = await fs.readFile(envFile, "utf-8");
-    await fs.writeFile(envFile, env.replace("My Contract", appName));
+    await fs.writeFile(envFile, env.replace("REITx", appName));
 
     ui.clearActionPrompt();
     ui.write("✅ Set title.\n");

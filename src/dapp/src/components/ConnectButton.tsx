@@ -35,7 +35,7 @@ export function ConnectButton() {
       <Box className="auth-button" style={{ zIndex: 2 }}>
         {address === "" ? (
           <Button leftIcon={<ConnectIcon />} {...buttonProps}>
-            Connect Wallet
+            Get Started
           </Button>
         ) : isSmallScreen ? (
           <IconButton aria-label="Connect Wallet" icon={<ConnectIcon />} {...buttonProps} />
