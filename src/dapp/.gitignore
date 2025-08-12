@@ -10,7 +10,7 @@
 /coverage
 
 # production
-/src/wrappers
+# /src/wrappers - commented out to include wrappers in git
 docs/
 
 
