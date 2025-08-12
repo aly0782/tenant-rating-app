@@ -552,39 +552,11 @@ export function AdminPanel() {
     try {
       const holders = await getPropertyHolders(propertyId);
       
-      // For testing, create mock data if no holders returned
-      if (holders.length === 0) {
-        // Mock data for demonstration
-        const mockHolders: TokenHolder[] = [
-          {
-            address: '0QAcmvznK9RWWsXzVykfgPnhXf3EedQR_pgS5YPcnqmve2LU',
-            balance: '100',
-            percentage: 40
-          },
-          {
-            address: '0QBvI4-716qTI_NvEdlPCjKC5E58t3v9mz35chpjdJfrXaMV',
-            balance: '75',
-            percentage: 30
-          },
-          {
-            address: '0QCxE5jFPb6h7bzkFMqVdNGvLRNq4qVngtc_D-G3jTaXIPvK',
-            balance: '50',
-            percentage: 20
-          },
-          {
-            address: '0QDY2TvJ5ZVEqm1MxGLYErc1GvCwT9bFQV6wPjGfq_k4KyQU',
-            balance: '25',
-            percentage: 10
-          }
-        ];
-        setTokenHolders(mockHolders);
-      } else {
-        setTokenHolders(holders.map(h => ({
-          address: h.address,
-          balance: h.balance.toString(),
-          percentage: h.percentage
-        })));
-      }
+      setTokenHolders(holders.map(h => ({
+        address: h.address,
+        balance: h.balance.toString(),
+        percentage: h.percentage
+      })));
     } catch (error) {
       console.error('Error loading token holders:', error);
       toast({

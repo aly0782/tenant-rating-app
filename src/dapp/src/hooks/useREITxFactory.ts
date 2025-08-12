@@ -62,11 +62,7 @@ export function useREITxFactory(factoryAddress?: string) {
       try {
         nextPropertyId = await factory.getNextPropertyId(provider as any);
       } catch (err: any) {
-        console.warn('Could not get next property ID, contract may be uninitialized:', err.message);
-        // Return mock properties for testing if contract is not properly initialized
-        if (err.message?.includes('exit_code: -13')) {
-          return getMockProperties();
-        }
+        console.error('Could not get next property ID:', err.message);
         return [];
       }
       
@@ -90,33 +86,11 @@ export function useREITxFactory(factoryAddress?: string) {
         }
       }
       
-      // If no properties found and we're in testnet, return mock data
-      if (properties.length === 0 && nextPropertyId === 0) {
-        return getMockProperties();
-      }
-      
       return properties;
     } catch (err) {
       console.error('Failed to get properties:', err);
-      // Return mock properties for testing
-      return getMockProperties();
+      return [];
     }
-  };
-  
-  // Mock properties for testing when contract is not ready
-  const getMockProperties = (): PropertyInfo[] => {
-    return [
-      {
-        name: 'Luxury Patuá Apartment',
-        location: 'Patuá, Lisbon',
-        totalSupply: toNano('1000000'),
-        pricePerToken: toNano('0.005'),
-        monthlyRent: toNano('50'),
-        active: true,
-        uri: '',
-        availableTokens: toNano('900000')
-      } as PropertyInfo
-    ];
   };
 
   const getUserHoldings = async (): Promise<PropertyHolding[]> => {

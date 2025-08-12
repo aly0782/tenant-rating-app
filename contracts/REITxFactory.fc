@@ -1,24 +1,262 @@
+;; REITx Factory Smart Contract - Production Version
+;; Manages tokenized real estate properties on TON blockchain
+
 #pragma version >=0.2.0;
 
-;; REITx Factory Smart Contract - Minimal version for testing
+;; Standard library functions
+() send_raw_message(cell msg, int mode) impure asm "SENDRAWMSG";
+cell new_dict() asm "NEWDICT";
+int slice_hash(slice s) asm "HASHCU";
+int now() asm "NOW";
 
+;; Storage operations
+cell get_data() asm "c4 PUSH";
+() set_data(cell c) impure asm "c4 POP";
+
+;; Cell/Builder operations
+builder begin_cell() asm "NEWC";
+cell end_cell(builder b) asm "ENDC";
+slice begin_parse(cell c) asm "CTOS";
+
+;; Store operations
+builder store_slice(builder b, slice s) asm "STSLICER";
+builder store_coins(builder b, int x) asm "STGRAMS";
+builder store_dict(builder b, cell c) asm(c b) "STDICT";
+builder store_ref(builder b, cell c) asm(c b) "STREF";
+
+;; Load operations
+(slice, slice) load_msg_addr(slice s) asm( -> 1 0) "LDMSGADDR";
+(slice, int) load_coins(slice s) asm( -> 1 0) "LDGRAMS";
+(slice, cell) load_dict(slice s) asm( -> 1 0) "LDDICT";
+(slice, cell) load_ref(slice s) asm( -> 1 0) "LDREF";
+
+;; Dictionary operations
+(slice, int) udict_get?(cell dict, int key_len, int index) asm(index dict key_len) "DICTUGET" "NULLSWAPIFNOT";
+cell udict_set(cell dict, int key_len, int index, slice value) asm(value index dict key_len) "DICTUSET" "NIP";
+
+;; Slice operations
+int slice_empty?(slice s) asm "SEMPTY";
+int equal_slices(slice a, slice b) asm "SDEQ";
+
+;; Constants
+const int op::create_property = 0x12345678;
+const int op::buy_tokens = 0x87654321;
+const int op::set_property_active = 0x11223344;
+const int op::pause = 0x55667788;
+const int op::unpause = 0x88776655;
+
+;; Error codes
+const int error::not_admin = 401;
+const int error::paused = 402;
+const int error::property_not_found = 403;
+const int error::insufficient_funds = 404;
+const int error::insufficient_tokens = 405;
+
+;; Storage structure: admin_address | next_property_id | properties_dict | user_balances_dict | paused
+
+;; Load storage
+(slice, int, cell, cell, int) load_data() inline {
+    slice ds = get_data().begin_parse();
+    return (
+        ds~load_msg_addr(),     ;; admin_address
+        ds~load_uint(32),       ;; next_property_id
+        ds~load_dict(),         ;; properties_dict
+        ds~load_dict(),         ;; user_balances_dict
+        ds~load_uint(1)         ;; paused
+    );
+}
+
+;; Save storage
+() save_data(slice admin, int next_id, cell properties, cell balances, int paused) impure inline {
+    set_data(
+        begin_cell()
+            .store_slice(admin)
+            .store_uint(next_id, 32)
+            .store_dict(properties)
+            .store_dict(balances)
+            .store_uint(paused, 1)
+            .end_cell()
+    );
+}
+
+;; Main message handler
 () recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
-    ;; Accept any message for now - minimal contract
-    return ();
+    if (in_msg_body.slice_empty?()) {
+        return ();
+    }
+    
+    slice cs = in_msg_full.begin_parse();
+    int flags = cs~load_uint(4);
+    
+    if (flags & 1) { ;; ignore bounced messages
+        return ();
+    }
+    
+    slice sender_address = cs~load_msg_addr();
+    int op = in_msg_body~load_uint(32);
+    int query_id = in_msg_body~load_uint(64);
+    
+    ;; Load storage
+    (slice admin, int next_property_id, cell properties, cell user_balances, int paused) = load_data();
+    
+    ;; Handle create property (admin only)
+    if (op == op::create_property) {
+        throw_unless(error::not_admin, equal_slices(sender_address, admin));
+        
+        cell name = in_msg_body~load_ref();
+        cell location = in_msg_body~load_ref();
+        int total_supply = in_msg_body~load_coins();
+        int price_per_token = in_msg_body~load_coins();
+        int monthly_rent = in_msg_body~load_coins();
+        cell uri = in_msg_body~load_ref();
+        
+        ;; Create property data slice
+        cell property_data = begin_cell()
+            .store_ref(name)
+            .store_ref(location)
+            .store_coins(total_supply)
+            .store_coins(price_per_token)
+            .store_coins(monthly_rent)
+            .store_uint(1, 1)  ;; active
+            .store_ref(uri)
+            .store_coins(total_supply)  ;; available_tokens = total_supply initially
+            .end_cell();
+        
+        ;; Add to properties dict
+        properties = udict_set(properties, 32, next_property_id, property_data.begin_parse());
+        
+        ;; Increment property ID
+        next_property_id += 1;
+        
+        save_data(admin, next_property_id, properties, user_balances, paused);
+        return ();
+    }
+    
+    ;; Handle buy tokens
+    if (op == op::buy_tokens) {
+        throw_if(error::paused, paused);
+        
+        int property_id = in_msg_body~load_uint(32);
+        int amount = in_msg_body~load_coins();
+        
+        ;; Get property
+        (slice property_slice, int found) = properties.udict_get?(32, property_id);
+        throw_unless(error::property_not_found, found);
+        
+        ;; Parse property
+        cell prop_name = property_slice~load_ref();
+        cell prop_location = property_slice~load_ref();
+        int total_supply = property_slice~load_coins();
+        int price_per_token = property_slice~load_coins();
+        int monthly_rent = property_slice~load_coins();
+        int active = property_slice~load_uint(1);
+        cell prop_uri = property_slice~load_ref();
+        int available_tokens = property_slice~load_coins();
+        
+        ;; Check if enough tokens available
+        throw_unless(error::insufficient_tokens, available_tokens >= amount);
+        
+        ;; Check payment
+        int required_payment = amount * price_per_token / 1000000000;
+        throw_unless(error::insufficient_funds, msg_value >= required_payment);
+        
+        ;; Update available tokens
+        available_tokens = available_tokens - amount;
+        
+        ;; Update property
+        cell updated_property = begin_cell()
+            .store_ref(prop_name)
+            .store_ref(prop_location)
+            .store_coins(total_supply)
+            .store_coins(price_per_token)
+            .store_coins(monthly_rent)
+            .store_uint(active, 1)
+            .store_ref(prop_uri)
+            .store_coins(available_tokens)
+            .end_cell();
+        
+        properties = udict_set(properties, 32, property_id, updated_property.begin_parse());
+        
+        ;; Update user balance
+        int sender_hash = slice_hash(sender_address);
+        int balance_key = property_id * 1000000000 + sender_hash;
+        
+        (slice balance_slice, int balance_found) = user_balances.udict_get?(256, balance_key);
+        int current_balance = balance_found ? balance_slice~load_coins() : 0;
+        current_balance = current_balance + amount;
+        
+        cell balance_cell = begin_cell().store_coins(current_balance).end_cell();
+        user_balances = udict_set(user_balances, 256, balance_key, balance_cell.begin_parse());
+        
+        save_data(admin, next_property_id, properties, user_balances, paused);
+        return ();
+    }
+    
+    ;; Handle pause (admin only)
+    if (op == op::pause) {
+        throw_unless(error::not_admin, equal_slices(sender_address, admin));
+        save_data(admin, next_property_id, properties, user_balances, 1);
+        return ();
+    }
+    
+    ;; Handle unpause (admin only)
+    if (op == op::unpause) {
+        throw_unless(error::not_admin, equal_slices(sender_address, admin));
+        save_data(admin, next_property_id, properties, user_balances, 0);
+        return ();
+    }
+    
+    ;; Unknown operation
+    throw(0xffff);
 }
 
-;; Get next property ID - returns 1 for testing
+;; Get methods
+
+;; Get next property ID
 int get_next_property_id() method_id {
-    return 1;
+    (_, int next_id, _, _, _) = load_data();
+    return next_id;
 }
 
-;; Check if paused - always returns 0 (not paused)
+;; Check if paused
 int is_paused() method_id {
-    return 0;
+    (_, _, _, _, int paused) = load_data();
+    return paused;
 }
 
-;; Get user balance - returns mock balance for testing
+;; Get property info
+(int, cell, cell, int, int, int, int, cell, int) get_property_info(int property_id) method_id {
+    (_, _, cell properties, _, _) = load_data();
+    
+    (slice property_slice, int found) = properties.udict_get?(32, property_id);
+    throw_unless(error::property_not_found, found);
+    
+    cell name = property_slice~load_ref();
+    cell location = property_slice~load_ref();
+    int total_supply = property_slice~load_coins();
+    int price_per_token = property_slice~load_coins();
+    int monthly_rent = property_slice~load_coins();
+    int active = property_slice~load_uint(1);
+    cell uri = property_slice~load_ref();
+    int available_tokens = property_slice~load_coins();
+    
+    return (property_id, name, location, total_supply, price_per_token, 
+            monthly_rent, active, uri, available_tokens);
+}
+
+;; Get user balance for a property
 int get_user_balance(int property_id, slice user_address) method_id {
-    ;; Return 100 tokens for any query (for testing)
-    return 100000000000; ;; 100 tokens in nanotons
+    (_, _, _, cell user_balances, _) = load_data();
+    
+    int user_hash = slice_hash(user_address);
+    int balance_key = property_id * 1000000000 + user_hash;
+    
+    (slice balance_slice, int found) = user_balances.udict_get?(256, balance_key);
+    return found ? balance_slice~load_coins() : 0;
+}
+
+;; Get admin address
+slice get_admin_address() method_id {
+    (slice admin, _, _, _, _) = load_data();
+    return admin;
 }
