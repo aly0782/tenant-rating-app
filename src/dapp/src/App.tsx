@@ -133,19 +133,20 @@ function App() {
           zIndex="999"
           backdropFilter="blur(10px)"
           bgColor="rgba(255, 255, 255, 0.95)"
+          h={{ base: "80px", md: "auto" }}
         >
-          <Container maxW="container.xl" py={4}>
-            <Flex align="center" justify="space-between">
-              <Flex align="center" gap={8}>
+          <Container maxW="container.xl" py={{ base: 3, md: 4 }} h="full">
+            <Flex align="center" justify="space-between" h="full">
+              <Flex align="center" gap={{ base: 4, md: 8 }}>
                 <Heading 
-                  size="lg" 
+                  size={{ base: "md", md: "lg" }}
                   fontWeight="bold" 
                   letterSpacing="tight"
                   cursor="pointer"
                   onClick={navigateHome}
                   _hover={{ color: "blue.600" }}
                 >
-                  {import.meta.env.VITE_REACT_APP_TITLE || "REITx on TON"}
+                  {import.meta.env.VITE_REACT_APP_TITLE || "REITx"}
                 </Heading>
                 <Flex gap={6} display={{ base: "none", md: "flex" }}>
                   <Button 
@@ -198,7 +199,7 @@ function App() {
         {!isWhitepaperRoute && !isRiskDisclosureRoute && !isDashboardRoute && !pathParams?.wrapper && (
           <Box
             position="relative"
-            h={{ base: "60vh", md: "70vh" }}
+            h={{ base: "calc(100vh - 80px)", md: "70vh" }}
             bg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
             overflow="hidden"
           >
@@ -210,44 +211,49 @@ function App() {
               bgPosition="center"
               opacity="0.3"
             />
-            <Container maxW="container.xl" h="full" position="relative">
+            <Container maxW="container.xl" h="full" position="relative" px={{ base: 4, md: 8 }}>
               <VStack
                 justify="center"
                 h="full"
                 align="flex-start"
-                spacing={6}
+                spacing={{ base: 4, md: 6 }}
                 maxW={{ base: "100%", md: "60%" }}
+                py={{ base: 6, md: 0 }}
               >
                 <Heading
-                  size={{ base: "2xl", md: "3xl", lg: "4xl" }}
+                  size={{ base: "xl", md: "3xl", lg: "4xl" }}
                   color="white"
                   fontWeight="bold"
                   lineHeight="shorter"
                 >
                   Real Estate Investment on TON Blockchain
                 </Heading>
-                <Text fontSize={{ base: "lg", md: "xl" }} color="whiteAlpha.900" lineHeight="tall">
+                <Text fontSize={{ base: "md", md: "xl" }} color="whiteAlpha.900" lineHeight={{ base: "base", md: "tall" }}>
                   Invest in tokenized Lisbon properties through TON blockchain. 
                   Own fractions of real estate and earn monthly yields in TON.
                 </Text>
-                <Flex gap={4} flexWrap="wrap">
+                <Flex gap={{ base: 3, md: 4 }} flexWrap="wrap" w={{ base: "full", md: "auto" }}>
                   <Button 
-                    size="lg" 
+                    size={{ base: "md", md: "lg" }}
                     variant="solid" 
                     bg="white" 
                     color="black" 
                     _hover={{ bg: "gray.100" }}
                     onClick={handleGetStarted}
+                    flex={{ base: 1, md: "initial" }}
+                    minW={{ base: "120px", md: "auto" }}
                   >
                     {tonAddress ? "View Properties" : "Get Started"}
                   </Button>
                   <Button 
-                    size="lg" 
+                    size={{ base: "md", md: "lg" }}
                     variant="outline" 
                     color="white" 
                     borderColor="white" 
                     _hover={{ bg: "whiteAlpha.200" }}
                     onClick={() => navigateTo('whitepaper')}
+                    flex={{ base: 1, md: "initial" }}
+                    minW={{ base: "120px", md: "auto" }}
                   >
                     Learn More
                   </Button>

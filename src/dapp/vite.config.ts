@@ -14,7 +14,7 @@ export default defineConfig({
       protocolImports: true,
     }),
   ],
-  // Use correct base path when deploying to GitHub Pages (set GH_PAGES=1 in env)
+  // Use correct base path for deployment
   base: process.env.GH_PAGES ? "/blueprint-scaffold/" : "/",
   define: {
     global: "globalThis",

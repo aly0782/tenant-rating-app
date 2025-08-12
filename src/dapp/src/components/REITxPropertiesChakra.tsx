@@ -197,11 +197,11 @@ export function REITxPropertiesChakra() {
   return (
     <Box py={16} bg="neutral.50">
       <Container maxW="container.xl">
-        <VStack spacing={8} mb={16} textAlign="center">
-          <Heading size="2xl" fontWeight="bold">
+        <VStack spacing={{ base: 4, md: 8 }} mb={{ base: 8, md: 16 }} textAlign="center">
+          <Heading size={{ base: "lg", md: "2xl" }} fontWeight="bold">
             Available Properties on TON
           </Heading>
-          <Text fontSize="xl" color="neutral.600" maxW="container.md">
+          <Text fontSize={{ base: "md", md: "xl" }} color="neutral.600" maxW="container.md" px={{ base: 4, md: 0 }}>
             Invest in premium Portuguese real estate through blockchain tokenization. 
             Own fractions, earn monthly yields in TON cryptocurrency.
           </Text>
@@ -247,7 +247,7 @@ export function REITxPropertiesChakra() {
 
               return (
                 <Card key={displayProperty.id} overflow="hidden" _hover={{ transform: 'translateY(-4px)', shadow: 'xl' }} transition="all 0.3s">
-                <Box position="relative" h="250px">
+                <Box position="relative" h={{ base: "200px", md: "250px" }}>
                   <Image
                     src={displayProperty.images[0]}
                     alt={displayProperty.name}
@@ -268,13 +268,13 @@ export function REITxPropertiesChakra() {
                 <CardBody>
                   <VStack align="flex-start" spacing={4}>
                     <VStack align="flex-start" spacing={1}>
-                      <Heading size="md" lineHeight="short">
+                      <Heading size={{ base: "sm", md: "md" }} lineHeight="short">
                         {displayProperty.name}
                       </Heading>
-                      <Text color="neutral.600" fontSize="sm">
+                      <Text color="neutral.600" fontSize={{ base: "xs", md: "sm" }}>
                         {displayProperty.location}
                       </Text>
-                      <Text fontSize="sm" color="neutral.500" noOfLines={3}>
+                      <Text fontSize={{ base: "xs", md: "sm" }} color="neutral.500" noOfLines={{ base: 2, md: 3 }}>
                         {displayProperty.description}
                       </Text>
                     </VStack>
