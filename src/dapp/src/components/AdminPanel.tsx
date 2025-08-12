@@ -55,6 +55,7 @@ import {
 import { DeleteIcon, EditIcon, AddIcon } from '@chakra-ui/icons';
 import { useTonConnect } from '../hooks/useTonConnect';
 import { useREITxFactory } from '../hooks/useREITxFactory';
+import { useTonClient } from '../hooks/useTonClient';
 import { toNano, fromNano, Address, beginCell } from '@ton/core';
 import contractConfig from '../config/contract.json';
 import { PinataUploader, buildPropertyMetadata } from '../utils/pinata';
@@ -93,6 +94,7 @@ interface TokenHolder {
 export function AdminPanel() {
   const { isConnected, userAddress } = useTonConnect();
   const { factory, createProperty, getPropertyHolders, getAllProperties, isLoading: contractLoading, error: contractError } = useREITxFactory();
+  const { client } = useTonClient();
   const [isAdmin, setIsAdmin] = useState<number>(0); // 0: not admin, 1: regular, 2: super
   const [admins, setAdmins] = useState<AdminAddress[]>([]);
   const [platformStats, setPlatformStats] = useState({ totalFunds: '0', totalRent: '0' });
