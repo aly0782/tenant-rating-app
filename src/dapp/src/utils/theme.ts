@@ -205,7 +205,7 @@ const components = {
     },
   },
   Card: {
-    baseStyle: ({ colorMode }) => ({
+    baseStyle: ({ colorMode }: { colorMode: string }) => ({
       container: {
         borderRadius: "none",
         boxShadow: "sm",
@@ -278,7 +278,7 @@ const components = {
 };
 
 const styles = {
-  global: ({ colorMode }) => ({
+  global: ({ colorMode }: { colorMode: string }) => ({
     "html, body": {
       backgroundColor: colorMode === 'dark' ? 'gray.900' : 'neutral.50',
       color: colorMode === 'dark' ? 'gray.100' : 'neutral.900',
