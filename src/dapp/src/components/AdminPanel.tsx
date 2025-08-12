@@ -50,6 +50,7 @@ import {
   IconButton,
   InputGroup,
   InputLeftAddon,
+  Image,
 } from '@chakra-ui/react';
 import { DeleteIcon, EditIcon, AddIcon } from '@chakra-ui/icons';
 import { useTonConnect } from '../hooks/useTonConnect';
@@ -73,7 +74,7 @@ interface PropertyForm {
   bedrooms: string;
   bathrooms: string;
   amenities: string;
-  imageUrls: string;
+  imageFiles: File[];
 }
 
 interface AdminAddress {
@@ -110,9 +111,10 @@ export function AdminPanel() {
     bedrooms: '',
     bathrooms: '',
     amenities: '',
-    imageUrls: ''
+    imageFiles: []
   });
   const [isUploadingMetadata, setIsUploadingMetadata] = useState(false);
+  const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
 
   // Form state for new admin
   const [newAdminAddress, setNewAdminAddress] = useState('');
@@ -252,11 +254,32 @@ export function AdminPanel() {
       
       const pinata = new PinataUploader(pinataJwt);
       
-      // Process image URLs from textarea (comma or newline separated)
-      const imageUrls = propertyForm.imageUrls
-        .split(/[,\n]/)
-        .map(url => url.trim())
-        .filter(url => url.length > 0);
+      // Upload images to Pinata first
+      const imageUrls: string[] = [];
+      if (propertyForm.imageFiles.length > 0) {
+        toast({
+          title: `Uploading ${propertyForm.imageFiles.length} images to IPFS...`,
+          status: 'info',
+          duration: 3000,
+          isClosable: true,
+        });
+        
+        for (const file of propertyForm.imageFiles) {
+          try {
+            const imageUrl = await pinata.uploadFile(file);
+            imageUrls.push(imageUrl);
+          } catch (error) {
+            console.error(`Failed to upload image ${file.name}:`, error);
+            toast({
+              title: 'Image upload warning',
+              description: `Failed to upload ${file.name}, continuing with other images`,
+              status: 'warning',
+              duration: 3000,
+              isClosable: true,
+            });
+          }
+        }
+      }
       
       // Process amenities from comma-separated string
       const amenities = propertyForm.amenities
@@ -327,8 +350,9 @@ export function AdminPanel() {
         bedrooms: '',
         bathrooms: '',
         amenities: '',
-        imageUrls: ''
+        imageFiles: []
       });
+      setImagePreviewUrls([]);
       
       // Reload properties
       await loadAdminData();
@@ -379,6 +403,29 @@ export function AdminPanel() {
       });
     }
     setIsLoading(false);
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    
+    const fileArray = Array.from(files);
+    setPropertyForm({ ...propertyForm, imageFiles: [...propertyForm.imageFiles, ...fileArray] });
+    
+    // Create preview URLs
+    const newPreviewUrls = fileArray.map(file => URL.createObjectURL(file));
+    setImagePreviewUrls([...imagePreviewUrls, ...newPreviewUrls]);
+  };
+  
+  const handleRemoveImage = (index: number) => {
+    const newImageFiles = propertyForm.imageFiles.filter((_, i) => i !== index);
+    const newPreviewUrls = imagePreviewUrls.filter((_, i) => i !== index);
+    
+    // Revoke the object URL to free memory
+    URL.revokeObjectURL(imagePreviewUrls[index]);
+    
+    setPropertyForm({ ...propertyForm, imageFiles: newImageFiles });
+    setImagePreviewUrls(newPreviewUrls);
   };
 
   const handleRemoveAdmin = async (address: string) => {
@@ -876,13 +923,62 @@ export function AdminPanel() {
               </FormControl>
               
               <FormControl>
-                <FormLabel>Property Images (URLs)</FormLabel>
-                <Textarea
-                  placeholder="Enter image URLs (one per line or comma-separated)"
-                  value={propertyForm.imageUrls}
-                  onChange={(e) => setPropertyForm({ ...propertyForm, imageUrls: e.target.value })}
-                  rows={3}
-                />
+                <FormLabel>Property Images</FormLabel>
+                <VStack align="stretch" spacing={3}>
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleImageChange}
+                    display="none"
+                    id="image-upload"
+                  />
+                  <Button
+                    as="label"
+                    htmlFor="image-upload"
+                    leftIcon={<AddIcon />}
+                    variant="outline"
+                    cursor="pointer"
+                  >
+                    Select Images from Device
+                  </Button>
+                  
+                  {imagePreviewUrls.length > 0 && (
+                    <Box>
+                      <Text fontSize="sm" color="gray.600" mb={2}>
+                        {propertyForm.imageFiles.length} image(s) selected
+                      </Text>
+                      <HStack spacing={2} overflowX="auto" py={2}>
+                        {imagePreviewUrls.map((url, index) => (
+                          <Box key={index} position="relative" flexShrink={0}>
+                            <Image
+                              src={url}
+                              alt={`Preview ${index + 1}`}
+                              boxSize="100px"
+                              objectFit="cover"
+                              borderRadius="md"
+                              border="1px solid"
+                              borderColor="gray.200"
+                            />
+                            <IconButton
+                              icon={<DeleteIcon />}
+                              aria-label="Remove image"
+                              size="xs"
+                              colorScheme="red"
+                              position="absolute"
+                              top={1}
+                              right={1}
+                              onClick={() => handleRemoveImage(index)}
+                            />
+                            <Text fontSize="xs" mt={1} textAlign="center" noOfLines={1}>
+                              {propertyForm.imageFiles[index].name}
+                            </Text>
+                          </Box>
+                        ))}
+                      </HStack>
+                    </Box>
+                  )}
+                </VStack>
               </FormControl>
               
               <HStack w="full">
