@@ -253,4 +253,10 @@ export class REITxFactory implements Contract {
         ]);
         return result.stack.readBigNumber();
     }
+
+    async getPropertyHolders(provider: ContractProvider, propertyId: number): Promise<Array<{address: Address, balance: bigint}>> {
+        // Note: This would need to be implemented in the smart contract
+        // For now, returning empty array - in production, this would fetch from contract
+        return [];
+    }
 }

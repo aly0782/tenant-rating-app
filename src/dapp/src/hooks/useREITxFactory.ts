@@ -216,12 +216,46 @@ export function useREITxFactory(factoryAddress?: string) {
     return true;
   };
 
+  const getPropertyHolders = async (propertyId: number): Promise<Array<{
+    address: string;
+    balance: bigint;
+    percentage: number;
+  }>> => {
+    if (!factory || !client) return [];
+    
+    try {
+      const provider = (client as TonClient).provider(factory.address);
+      
+      // Add delay to avoid rate limiting
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Get property info to calculate percentages
+      const propertyInfo = await factory.getPropertyInfo(provider as any, propertyId);
+      const soldTokens = propertyInfo.totalSupply - propertyInfo.availableTokens;
+      
+      // Get holders from contract (in production)
+      // For testing, we'll create mock data
+      const holders = await factory.getPropertyHolders(provider as any, propertyId);
+      
+      // Calculate percentages
+      return holders.map(holder => ({
+        address: holder.address.toString(),
+        balance: holder.balance,
+        percentage: soldTokens > 0n ? Number((holder.balance * 10000n) / soldTokens) / 100 : 0
+      }));
+    } catch (err) {
+      console.error('Failed to get property holders:', err);
+      return [];
+    }
+  };
+
   return {
     factory,
     isLoading: isLoading,
     error: error,
     getAllProperties,
     getUserHoldings,
+    getPropertyHolders,
     buyTokens,
     createProperty
   };

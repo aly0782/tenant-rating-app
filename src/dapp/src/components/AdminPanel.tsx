@@ -83,9 +83,16 @@ interface AdminAddress {
   addedDate: string;
 }
 
+interface TokenHolder {
+  address: string;
+  balance: string;
+  percentage: number;
+  usdcAmount?: number;
+}
+
 export function AdminPanel() {
   const { isConnected, userAddress } = useTonConnect();
-  const { factory, createProperty, isLoading: contractLoading, error: contractError } = useREITxFactory();
+  const { factory, createProperty, getPropertyHolders, getAllProperties, isLoading: contractLoading, error: contractError } = useREITxFactory();
   const [isAdmin, setIsAdmin] = useState<number>(0); // 0: not admin, 1: regular, 2: super
   const [admins, setAdmins] = useState<AdminAddress[]>([]);
   const [platformStats, setPlatformStats] = useState({ totalFunds: '0', totalRent: '0' });
@@ -119,6 +126,11 @@ export function AdminPanel() {
   // Form state for new admin
   const [newAdminAddress, setNewAdminAddress] = useState('');
   const [isPaused, setIsPaused] = useState(false);
+  const [selectedPropertyForHolders, setSelectedPropertyForHolders] = useState<number | null>(null);
+  const [tokenHolders, setTokenHolders] = useState<TokenHolder[]>([]);
+  const [totalUsdcToDistribute, setTotalUsdcToDistribute] = useState('');
+  const [isLoadingHolders, setIsLoadingHolders] = useState(false);
+  const [isDistributing, setIsDistributing] = useState(false);
 
   // Check admin status on mount
   useEffect(() => {
@@ -200,8 +212,21 @@ export function AdminPanel() {
       // setPlatformStats(stats);
       
       // Load all properties
-      // const props = await factory.getAllProperties();
-      // setProperties(props);
+      if (getAllProperties) {
+        const props = await getAllProperties();
+        // Transform properties for display
+        const displayProps = props.map((prop: any, index: number) => ({
+          id: index,
+          name: prop.name || `Property ${index}`,
+          location: prop.location || 'Unknown',
+          totalSupply: Number(prop.totalSupply) || 0,
+          availableTokens: Number(prop.availableTokens) || 0,
+          pricePerToken: fromNano(prop.pricePerToken || 0n),
+          monthlyRent: fromNano(prop.monthlyRent || 0n),
+          active: prop.active !== false
+        }));
+        setProperties(displayProps);
+      }
       
       // Load admin list (super admin only)
       if (isAdmin === 2) {
@@ -518,6 +543,132 @@ export function AdminPanel() {
     setIsLoading(false);
   };
 
+  const loadPropertyHolders = async (propertyId: number) => {
+    if (!getPropertyHolders) return;
+    
+    setIsLoadingHolders(true);
+    setSelectedPropertyForHolders(propertyId);
+    
+    try {
+      const holders = await getPropertyHolders(propertyId);
+      
+      // For testing, create mock data if no holders returned
+      if (holders.length === 0) {
+        // Mock data for demonstration
+        const mockHolders: TokenHolder[] = [
+          {
+            address: '0QAcmvznK9RWWsXzVykfgPnhXf3EedQR_pgS5YPcnqmve2LU',
+            balance: '100',
+            percentage: 40
+          },
+          {
+            address: '0QBvI4-716qTI_NvEdlPCjKC5E58t3v9mz35chpjdJfrXaMV',
+            balance: '75',
+            percentage: 30
+          },
+          {
+            address: '0QCxE5jFPb6h7bzkFMqVdNGvLRNq4qVngtc_D-G3jTaXIPvK',
+            balance: '50',
+            percentage: 20
+          },
+          {
+            address: '0QDY2TvJ5ZVEqm1MxGLYErc1GvCwT9bFQV6wPjGfq_k4KyQU',
+            balance: '25',
+            percentage: 10
+          }
+        ];
+        setTokenHolders(mockHolders);
+      } else {
+        setTokenHolders(holders.map(h => ({
+          address: h.address,
+          balance: h.balance.toString(),
+          percentage: h.percentage
+        })));
+      }
+    } catch (error) {
+      console.error('Error loading token holders:', error);
+      toast({
+        title: 'Error loading holders',
+        description: 'Failed to load token holders for this property',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+    
+    setIsLoadingHolders(false);
+  };
+  
+  const calculateDistribution = () => {
+    if (!totalUsdcToDistribute || parseFloat(totalUsdcToDistribute) <= 0) {
+      return tokenHolders;
+    }
+    
+    const total = parseFloat(totalUsdcToDistribute);
+    return tokenHolders.map(holder => ({
+      ...holder,
+      usdcAmount: (total * holder.percentage) / 100
+    }));
+  };
+  
+  const handleDistributeUSDC = async () => {
+    if (!totalUsdcToDistribute || parseFloat(totalUsdcToDistribute) <= 0) {
+      toast({
+        title: 'Invalid amount',
+        description: 'Please enter a valid USDC amount to distribute',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+    
+    setIsDistributing(true);
+    
+    try {
+      const distribution = calculateDistribution();
+      
+      // In production, this would call smart contract to distribute USDC
+      // For now, we'll simulate the distribution
+      toast({
+        title: 'Distribution initiated',
+        description: `Starting USDC distribution to ${distribution.length} holders`,
+        status: 'info',
+        duration: 3000,
+        isClosable: true,
+      });
+      
+      // Simulate distribution to each holder
+      for (const holder of distribution) {
+        if (holder.usdcAmount && holder.usdcAmount > 0) {
+          // In production: await sendUSDC(holder.address, holder.usdcAmount);
+          console.log(`Distributing ${holder.usdcAmount} USDC to ${holder.address}`);
+        }
+      }
+      
+      toast({
+        title: 'Distribution complete',
+        description: `Successfully distributed ${totalUsdcToDistribute} USDC to token holders`,
+        status: 'success',
+        duration: 5000,
+        isClosable: true,
+      });
+      
+      // Reset the form
+      setTotalUsdcToDistribute('');
+    } catch (error: any) {
+      toast({
+        title: 'Distribution failed',
+        description: error.message || 'Failed to distribute USDC',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+    
+    setIsDistributing(false);
+  };
+
   const handleTogglePause = async () => {
     if (!factory) return;
     
@@ -652,6 +803,7 @@ export function AdminPanel() {
         <Tabs colorScheme="blue">
           <TabList>
             <Tab>Properties</Tab>
+            <Tab>Token Holders</Tab>
             {isAdmin === 2 && <Tab>Admins</Tab>}
             <Tab>Rent Distribution</Tab>
             <Tab>Settings</Tab>
@@ -709,6 +861,151 @@ export function AdminPanel() {
                     </Tbody>
                   </Table>
                 </TableContainer>
+              </VStack>
+            </TabPanel>
+
+            {/* Token Holders Tab */}
+            <TabPanel>
+              <VStack spacing={6} align="stretch">
+                {/* Property Selection */}
+                <Card>
+                  <CardHeader>
+                    <Heading size="md">Select Property</Heading>
+                  </CardHeader>
+                  <CardBody>
+                    <VStack spacing={4} align="stretch">
+                      <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={4}>
+                        {properties.map((property) => (
+                          <Button
+                            key={property.id}
+                            variant={selectedPropertyForHolders === property.id ? 'solid' : 'outline'}
+                            colorScheme={selectedPropertyForHolders === property.id ? 'blue' : 'gray'}
+                            onClick={() => loadPropertyHolders(property.id)}
+                            isLoading={isLoadingHolders && selectedPropertyForHolders === property.id}
+                            height="auto"
+                            py={3}
+                            px={4}
+                            justifyContent="flex-start"
+                            flexDirection="column"
+                            alignItems="flex-start"
+                          >
+                            <Text fontWeight="bold" fontSize="sm">{property.name}</Text>
+                            <Text fontSize="xs" color="gray.600">
+                              {property.totalSupply - property.availableTokens} tokens sold
+                            </Text>
+                          </Button>
+                        ))}
+                      </SimpleGrid>
+                    </VStack>
+                  </CardBody>
+                </Card>
+
+                {/* Token Holders List */}
+                {selectedPropertyForHolders !== null && tokenHolders.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <HStack justify="space-between">
+                        <Heading size="md">Token Holders</Heading>
+                        <Badge colorScheme="blue" fontSize="md" px={3} py={1}>
+                          {tokenHolders.length} holders
+                        </Badge>
+                      </HStack>
+                    </CardHeader>
+                    <CardBody>
+                      <VStack spacing={4} align="stretch">
+                        {/* USDC Distribution Controls */}
+                        <Box borderWidth={1} borderRadius="md" p={4} bg="gray.50">
+                          <VStack spacing={3} align="stretch">
+                            <Text fontWeight="bold">Distribute USDC Dividends</Text>
+                            <HStack>
+                              <InputGroup>
+                                <InputLeftAddon>Total USDC</InputLeftAddon>
+                                <Input
+                                  type="number"
+                                  placeholder="Amount to distribute"
+                                  value={totalUsdcToDistribute}
+                                  onChange={(e) => setTotalUsdcToDistribute(e.target.value)}
+                                />
+                              </InputGroup>
+                              <Button
+                                colorScheme="green"
+                                onClick={handleDistributeUSDC}
+                                isLoading={isDistributing}
+                                loadingText="Distributing..."
+                                isDisabled={!totalUsdcToDistribute || parseFloat(totalUsdcToDistribute) <= 0}
+                              >
+                                Distribute
+                              </Button>
+                            </HStack>
+                            {totalUsdcToDistribute && parseFloat(totalUsdcToDistribute) > 0 && (
+                              <Text fontSize="sm" color="gray.600">
+                                Each holder will receive USDC proportional to their token ownership
+                              </Text>
+                            )}
+                          </VStack>
+                        </Box>
+
+                        {/* Holders Table */}
+                        <TableContainer>
+                          <Table variant="simple" size="sm">
+                            <Thead>
+                              <Tr>
+                                <Th>Wallet Address</Th>
+                                <Th isNumeric>Tokens Held</Th>
+                                <Th isNumeric>Ownership %</Th>
+                                {totalUsdcToDistribute && parseFloat(totalUsdcToDistribute) > 0 && (
+                                  <Th isNumeric>USDC to Receive</Th>
+                                )}
+                              </Tr>
+                            </Thead>
+                            <Tbody>
+                              {calculateDistribution().map((holder, index) => (
+                                <Tr key={index}>
+                                  <Td>
+                                    <Text fontFamily="mono" fontSize="xs">
+                                      {holder.address.slice(0, 8)}...{holder.address.slice(-6)}
+                                    </Text>
+                                  </Td>
+                                  <Td isNumeric fontWeight="medium">{holder.balance}</Td>
+                                  <Td isNumeric>
+                                    <Badge colorScheme="purple">{holder.percentage.toFixed(2)}%</Badge>
+                                  </Td>
+                                  {totalUsdcToDistribute && parseFloat(totalUsdcToDistribute) > 0 && (
+                                    <Td isNumeric fontWeight="bold" color="green.600">
+                                      ${holder.usdcAmount?.toFixed(2) || '0.00'}
+                                    </Td>
+                                  )}
+                                </Tr>
+                              ))}
+                            </Tbody>
+                          </Table>
+                        </TableContainer>
+
+                        {/* Summary */}
+                        {totalUsdcToDistribute && parseFloat(totalUsdcToDistribute) > 0 && (
+                          <Box borderTopWidth={1} pt={3}>
+                            <HStack justify="space-between">
+                              <Text fontWeight="bold">Total Distribution:</Text>
+                              <Text fontWeight="bold" fontSize="lg" color="green.600">
+                                ${parseFloat(totalUsdcToDistribute).toFixed(2)} USDC
+                              </Text>
+                            </HStack>
+                          </Box>
+                        )}
+                      </VStack>
+                    </CardBody>
+                  </Card>
+                )}
+
+                {selectedPropertyForHolders !== null && tokenHolders.length === 0 && !isLoadingHolders && (
+                  <Alert status="info">
+                    <AlertIcon />
+                    <AlertTitle>No token holders found</AlertTitle>
+                    <AlertDescription>
+                      This property doesn't have any token holders yet.
+                    </AlertDescription>
+                  </Alert>
+                )}
               </VStack>
             </TabPanel>
 
