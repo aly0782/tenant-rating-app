@@ -1,0 +1,9 @@
+{
+  "buildCommand": "yarn --cwd src/dapp install --inline-builds && yarn --cwd src/dapp build",
+  "framework": null,
+  "outputDirectory": "src/dapp/dist",
+  "cleanUrls": true,
+  "trailingSlash": false
+}
+
+

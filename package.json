@@ -11,6 +11,7 @@
   },
   "scripts": {
     "build": "rm -rf dist && tsc && cp -r src/dapp dist/",
+    "vercel-build": "yarn --cwd src/dapp install --inline-builds && yarn --cwd src/dapp build",
     "release": "yarn build && yarn publish --access public",
     "format": "prettier --write src"
   },
