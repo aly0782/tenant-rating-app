@@ -1,0 +1,89 @@
+{
+  "REITxFactory": {
+    "sendFunctions": {
+      "sendCreateProperty": {
+        "name": {
+          "type": "string",
+          "defaultValue": ""
+        },
+        "location": {
+          "type": "string", 
+          "defaultValue": ""
+        },
+        "totalSupply": {
+          "type": "bigint",
+          "defaultValue": "1000"
+        },
+        "pricePerToken": {
+          "type": "bigint",
+          "defaultValue": "100"
+        },
+        "monthlyRent": {
+          "type": "bigint", 
+          "defaultValue": "50"
+        },
+        "uri": {
+          "type": "string",
+          "defaultValue": ""
+        }
+      },
+      "sendBuyTokens": {
+        "propertyId": {
+          "type": "number",
+          "defaultValue": "0"
+        },
+        "amount": {
+          "type": "bigint",
+          "defaultValue": "1"
+        },
+        "value": {
+          "type": "bigint",
+          "defaultValue": "100"
+        }
+      }
+    },
+    "getFunctions": {
+      "getPropertyInfo": {
+        "propertyId": {
+          "type": "number",
+          "defaultValue": "0"
+        }
+      },
+      "getUserBalance": {
+        "propertyId": {
+          "type": "number", 
+          "defaultValue": "0"
+        },
+        "userAddress": {
+          "type": "Address",
+          "defaultValue": ""
+        }
+      },
+      "getNextPropertyId": {},
+      "getIsPaused": {}
+    },
+    "path": "../../../wrappers/REITxFactory",
+    "deploy": {
+      "canBeCreatedFromConfig": true,
+      "codeHex": "b5ee9c7241010101004a000084",
+      "configType": {
+        "adminAddress": {
+          "type": "Address"
+        },
+        "nextPropertyId": {
+          "type": "number",
+          "defaultValue": "1"
+        },
+        "properties": {
+          "type": "Dictionary",
+          "defaultValue": "{}"
+        },
+        "paused": {
+          "type": "boolean",
+          "defaultValue": "false"
+        }
+      }
+    },
+    "definedTypes": {}
+  }
+}
