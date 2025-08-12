@@ -19,6 +19,7 @@ import {
 import { Search2Icon } from "@chakra-ui/icons";
 import React, { useCallback, useEffect, useState } from "react";
 import { Address, Builder, Cell, Slice } from "@ton/core";
+import { Buffer } from "buffer";
 import {
   Parameters,
   ParamInfo,
