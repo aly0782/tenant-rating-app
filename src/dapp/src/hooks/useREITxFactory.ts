@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Address, fromNano, toNano, beginCell } from '@ton/core';
+import { Address, fromNano, toNano, beginCell, Sender } from '@ton/core';
+import { Buffer } from 'buffer';
 import { useTonClient } from './useTonClient';
 import { useTonConnect } from './useTonConnect';
 import { REITxFactory, PropertyInfo } from '../wrappers/REITxFactory';
@@ -19,7 +20,7 @@ interface PropertyHolding {
 
 export function useREITxFactory(factoryAddress?: string) {
   const { client } = useTonClient();
-  const { userAddress } = useTonConnect();
+  const { userAddress, sender } = useTonConnect();
   const [factory, setFactory] = useState<REITxFactory | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -144,14 +145,26 @@ export function useREITxFactory(factoryAddress?: string) {
   };
 
   const buyTokens = async (propertyId: number, amount: bigint, pricePerToken: bigint) => {
-    if (!factory || !client) {
-      throw new Error('Contract not initialized');
+    if (!factory || !client || !sender) {
+      throw new Error('Contract not initialized or wallet not connected');
     }
 
     const totalPrice = amount * pricePerToken;
     const value = totalPrice + toNano('0.1'); // Add gas fees
 
-    // This would be called through the TonConnect UI in the actual transaction
+    const message = beginCell()
+      .storeUint(0x87654321, 32) // op::buy_tokens
+      .storeUint(0, 64) // query_id
+      .storeUint(propertyId, 32)
+      .storeCoins(amount)
+      .endCell();
+
+    await sender.send({
+      to: Address.parse(contractConfig.factoryAddress),
+      value,
+      body: message
+    });
+
     return {
       propertyId,
       amount,
@@ -160,12 +173,46 @@ export function useREITxFactory(factoryAddress?: string) {
     };
   };
 
+  // Admin methods
+  const createProperty = async (property: {
+    name: string;
+    location: string;
+    totalSupply: bigint;
+    pricePerToken: bigint;
+    monthlyRent: bigint;
+    uri: string;
+  }) => {
+    if (!sender || !factory) {
+      throw new Error('Wallet not connected or factory not loaded');
+    }
+
+    const message = beginCell()
+      .storeUint(0x12345678, 32) // op::create_property
+      .storeUint(0, 64) // query_id
+      .storeRef(beginCell().storeBuffer(Buffer.from(property.name)).endCell())
+      .storeRef(beginCell().storeBuffer(Buffer.from(property.location)).endCell())
+      .storeCoins(property.totalSupply)
+      .storeCoins(property.pricePerToken)
+      .storeCoins(property.monthlyRent)
+      .storeRef(beginCell().storeBuffer(Buffer.from(property.uri)).endCell())
+      .endCell();
+
+    await sender.send({
+      to: Address.parse(contractConfig.factoryAddress),
+      value: toNano('0.1'),
+      body: message
+    });
+
+    return true;
+  };
+
   return {
     factory,
-    isLoading,
-    error,
+    isLoading: isLoading,
+    error: error,
     getAllProperties,
     getUserHoldings,
-    buyTokens
+    buyTokens,
+    createProperty
   };
 }
