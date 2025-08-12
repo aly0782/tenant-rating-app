@@ -254,12 +254,12 @@ export function useREITxFactory(factoryAddress?: string) {
     const message = beginCell()
       .storeUint(0x12345678, 32) // op::create_property
       .storeUint(0, 64) // query_id
-      .storeRef(beginCell().storeBuffer(Buffer.from(property.name)).endCell())
-      .storeRef(beginCell().storeBuffer(Buffer.from(property.location)).endCell())
+      .storeRef(beginCell().storeStringTail(property.name).endCell())
+      .storeRef(beginCell().storeStringTail(property.location).endCell())
       .storeCoins(property.totalSupply)
       .storeCoins(property.pricePerToken)
       .storeCoins(property.monthlyRent)
-      .storeRef(beginCell().storeBuffer(Buffer.from(property.uri)).endCell())
+      .storeRef(beginCell().storeStringTail(property.uri).endCell())
       .endCell();
 
     console.log('Message payload:', message.toBoc().toString('base64'));
