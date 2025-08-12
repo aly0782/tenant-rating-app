@@ -1,8 +1,12 @@
 {
   "factoryAddress": "EQA7n--u11cPQdY4zi_chGpu_WsHwOBs4Fc88pD2jDFSkD8J",
   "network": "testnet",
-  "deployedAt": "2025-08-12T18:52:00.000Z",
+  "deployedAt": "2025-08-12T20:58:00.000Z",
   "superAdmin": "EQAcmvznK9RWWsXzVykfgPnhXf3EedQR_pgS5YPcnqmve4Sb",
+  "admins": [
+    "UQArJIGQC7pe2CkdKQOwPOrjUjUOp4YgIC89SH8vKnd7HjQm",
+    "0QAcmvznK9RWWsXzVykfgPnhXf3EedQR_pgS5YPcnqmve2LU"
+  ],
   "features": {
     "multiAdmin": true,
     "rentDistribution": true,

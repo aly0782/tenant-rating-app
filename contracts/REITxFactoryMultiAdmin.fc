@@ -1,0 +1,467 @@
+;; REITx Factory Smart Contract with Multi-Admin Support
+;; Manages tokenized real estate properties on TON
+
+#pragma version >=0.2.0;
+
+;; Standard library functions we need
+() send_raw_message(cell msg, int mode) impure asm "SENDRAWMSG";
+cell new_dict() asm "NEWDICT";
+int slice_hash(slice s) asm "HASHCU";
+int now() asm "NOW";
+
+;; Storage operations
+cell get_data() asm "c4 PUSH";
+() set_data(cell c) impure asm "c4 POP";
+
+;; Cell/Builder operations
+builder begin_cell() asm "NEWC";
+cell end_cell(builder b) asm "ENDC";
+slice begin_parse(cell c) asm "CTOS";
+
+;; Store operations
+builder store_slice(builder b, slice s) asm "STSLICER";
+builder store_coins(builder b, int x) asm "STGRAMS";
+builder store_dict(builder b, cell c) asm(c b) "STDICT";
+builder store_ref(builder b, cell c) asm(c b) "STREF";
+
+;; Load operations
+(slice, slice) load_msg_addr(slice s) asm( -> 1 0) "LDMSGADDR";
+(slice, int) load_coins(slice s) asm( -> 1 0) "LDGRAMS";
+(slice, cell) load_dict(slice s) asm( -> 1 0) "LDDICT";
+(slice, cell) load_ref(slice s) asm( -> 1 0) "LDREF";
+
+;; Dictionary operations
+(slice, int) udict_get?(cell dict, int key_len, int index) asm(index dict key_len) "DICTUGET" "NULLSWAPIFNOT";
+cell udict_set(cell dict, int key_len, int index, slice value) asm(value index dict key_len) "DICTUSET" "NIP";
+(cell, int) udict_delete?(cell dict, int key_len, int index) asm(index dict key_len) "DICTUDEL";
+(int, slice, int) udict_get_next?(cell dict, int key_len, int pivot) asm(pivot dict key_len) "DICTUGETNEXT" "NULLSWAPIFNOT2";
+
+;; Slice operations
+int slice_empty?(slice s) asm "SEMPTY";
+int equal_slices(slice a, slice b) asm "SDEQ";
+
+
+;; Storage structure
+;; super_admin:MsgAddress
+;; admins:HashmapE 256 int1
+;; next_property_id:uint32
+;; properties:HashmapE 32 Property
+;; paused:int1
+;; total_funds_raised:Coins
+;; total_rent_distributed:Coins
+
+;; Property structure in dict:
+;; name:^Cell location:^Cell total_supply:Coins price_per_token:Coins 
+;; monthly_rent:Coins active:int1 uri:^Cell available_tokens:Coins
+;; token_holders:HashmapE 256 Coins
+;; created_at:uint32 last_rent_distribution:uint32
+
+;; Operation codes
+const int op::create_property = 0x12345678;
+const int op::buy_tokens = 0x87654321;
+const int op::set_property_active = 0x11223344;
+const int op::update_property_uri = 0x44332211;
+const int op::pause = 0x55667788;
+const int op::unpause = 0x88776655;
+const int op::withdraw_funds = 0x99887766;
+const int op::distribute_rent = 0xaabbccdd;
+const int op::add_admin = 0xddccbbaa;
+const int op::remove_admin = 0xeeffddcc;
+const int op::transfer_super_admin = 0xffeeddcc;
+const int op::sell_tokens = 0x11111111;
+const int op::get_property_info = 0x66778899;
+const int op::get_user_holdings = 0x22222222;
+
+;; Errors
+const int error::not_admin = 401;
+const int error::not_super_admin = 402;
+const int error::paused = 403;
+const int error::property_not_found = 404;
+const int error::property_inactive = 405;
+const int error::insufficient_tokens = 406;
+const int error::insufficient_payment = 407;
+const int error::invalid_amount = 408;
+const int error::already_admin = 409;
+const int error::not_token_holder = 410;
+
+;; Storage functions
+(slice, cell, int, cell, int, int, int) load_data() inline {
+    slice ds = get_data().begin_parse();
+    return (
+        ds~load_msg_addr(),      ;; super_admin
+        ds~load_dict(),          ;; admins dict
+        ds~load_uint(32),        ;; next_property_id
+        ds~load_dict(),          ;; properties dict
+        ds~load_uint(1),         ;; paused
+        ds~load_coins(),         ;; total_funds_raised
+        ds~load_coins()          ;; total_rent_distributed
+    );
+}
+
+() save_data(slice super_admin, cell admins, int next_property_id, 
+             cell properties, int paused, int total_funds, int total_rent) impure inline {
+    set_data(
+        begin_cell()
+            .store_slice(super_admin)
+            .store_dict(admins)
+            .store_uint(next_property_id, 32)
+            .store_dict(properties)
+            .store_uint(paused, 1)
+            .store_coins(total_funds)
+            .store_coins(total_rent)
+            .end_cell()
+    );
+}
+
+;; Helper to check if address is admin
+int is_admin(slice address, cell admins) inline {
+    (slice admin_flag, int found) = admins.udict_get?(256, slice_hash(address));
+    return found;
+}
+
+;; Helper to load property from dict
+(cell, cell, int, int, int, int, cell, int, cell, int, int) load_property(cell property_cell) inline {
+    slice ps = property_cell.begin_parse();
+    return (
+        ps~load_ref(),           ;; name
+        ps~load_ref(),           ;; location
+        ps~load_coins(),         ;; total_supply
+        ps~load_coins(),         ;; price_per_token
+        ps~load_coins(),         ;; monthly_rent
+        ps~load_uint(1),         ;; active
+        ps~load_ref(),           ;; uri
+        ps~load_coins(),         ;; available_tokens
+        ps~load_dict(),          ;; token_holders
+        ps~load_uint(32),        ;; created_at
+        ps~load_uint(32)         ;; last_rent_distribution
+    );
+}
+
+;; Helper to save property to cell
+cell save_property(cell name, cell location, int total_supply, int price_per_token, 
+                   int monthly_rent, int active, cell uri, int available_tokens, 
+                   cell holders, int created_at, int last_rent) inline {
+    return begin_cell()
+        .store_ref(name)
+        .store_ref(location)
+        .store_coins(total_supply)
+        .store_coins(price_per_token)
+        .store_coins(monthly_rent)
+        .store_uint(active, 1)
+        .store_ref(uri)
+        .store_coins(available_tokens)
+        .store_dict(holders)
+        .store_uint(created_at, 32)
+        .store_uint(last_rent, 32)
+        .end_cell();
+}
+
+;; Main message handler
+() recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
+    if (in_msg_body.slice_empty?()) {
+        return ();
+    }
+
+    slice cs = in_msg_full.begin_parse();
+    int flags = cs~load_uint(4);
+    
+    if (flags & 1) { ;; ignore bounced messages
+        return ();
+    }
+    
+    slice sender_address = cs~load_msg_addr();
+    
+    int op = in_msg_body~load_uint(32);
+    int query_id = in_msg_body~load_uint(64);
+    
+    (slice super_admin, cell admins, int next_property_id, cell properties, 
+     int paused, int total_funds, int total_rent) = load_data();
+    
+    ;; Check if sender is super admin or regular admin
+    int is_super = equal_slices(sender_address, super_admin);
+    int is_regular_admin = is_admin(sender_address, admins);
+    
+    ;; Super admin only operations
+    if ((op == op::add_admin) | (op == op::remove_admin) | (op == op::transfer_super_admin)) {
+        throw_unless(error::not_super_admin, is_super);
+        
+        if (op == op::add_admin) {
+            slice new_admin = in_msg_body~load_msg_addr();
+            (slice existing, int found) = admins.udict_get?(256, slice_hash(new_admin));
+            throw_if(error::already_admin, found);
+            
+            admins = udict_set(admins, 256, slice_hash(new_admin), 
+                           begin_cell().store_uint(1, 1).end_cell().begin_parse());
+            save_data(super_admin, admins, next_property_id, properties, paused, total_funds, total_rent);
+            return ();
+        }
+        
+        if (op == op::remove_admin) {
+            slice remove_admin = in_msg_body~load_msg_addr();
+            (admins, _) = udict_delete?(admins, 256, slice_hash(remove_admin));
+            save_data(super_admin, admins, next_property_id, properties, paused, total_funds, total_rent);
+            return ();
+        }
+        
+        if (op == op::transfer_super_admin) {
+            slice new_super = in_msg_body~load_msg_addr();
+            save_data(new_super, admins, next_property_id, properties, paused, total_funds, total_rent);
+            return ();
+        }
+    }
+    
+    ;; Admin operations (super admin or regular admin)
+    if ((op == op::create_property) | (op == op::set_property_active) | 
+        (op == op::update_property_uri) | (op == op::pause) | 
+        (op == op::unpause) | (op == op::withdraw_funds) | (op == op::distribute_rent)) {
+        throw_unless(error::not_admin, is_super | is_regular_admin);
+    }
+    
+    if (op == op::create_property) {
+        cell name = in_msg_body~load_ref();
+        cell location = in_msg_body~load_ref();
+        int total_supply = in_msg_body~load_coins();
+        int price_per_token = in_msg_body~load_coins();
+        int monthly_rent = in_msg_body~load_coins();
+        cell uri = in_msg_body~load_ref();
+        
+        throw_unless(error::invalid_amount, total_supply > 0);
+        throw_unless(error::invalid_amount, price_per_token > 0);
+        
+        cell new_property = save_property(
+            name, location, total_supply, price_per_token,
+            monthly_rent, true, uri, total_supply, new_dict(),
+            now(), 0
+        );
+        
+        properties = udict_set(properties, 32, next_property_id, new_property.begin_parse());
+        
+        save_data(super_admin, admins, next_property_id + 1, properties, paused, total_funds, total_rent);
+        return ();
+    }
+    
+    if (op == op::buy_tokens) {
+        throw_if(error::paused, paused);
+        
+        int property_id = in_msg_body~load_uint(32);
+        int amount = in_msg_body~load_coins();
+        
+        throw_unless(error::invalid_amount, amount > 0);
+        
+        (slice property_slice, int found) = properties.udict_get?(32, property_id);
+        throw_unless(error::property_not_found, found);
+        
+        (cell name, cell location, int total_supply, int price_per_token,
+         int monthly_rent, int active, cell uri, int available_tokens, 
+         cell holders, int created_at, int last_rent) = 
+            load_property(property_slice~load_ref());
+        
+        throw_unless(error::property_inactive, active);
+        throw_unless(error::insufficient_tokens, available_tokens >= amount);
+        
+        int total_price = price_per_token * amount;
+        throw_unless(error::insufficient_payment, msg_value >= total_price);
+        
+        ;; Update holder balance and store address for dashboard access
+        (slice holder_data_slice, int holder_found) = holders.udict_get?(256, slice_hash(sender_address));
+        int holder_balance = 0;
+        if (holder_found) {
+            holder_balance = holder_data_slice~load_coins();
+        }
+        holder_balance += amount;
+        
+        ;; Store both balance and address for user dashboard
+        holders = udict_set(holders, 256, slice_hash(sender_address), 
+                         begin_cell()
+                             .store_coins(holder_balance)
+                             .store_slice(sender_address)
+                             .end_cell().begin_parse());
+        
+        ;; Update available tokens
+        available_tokens -= amount;
+        
+        ;; Update total funds raised
+        total_funds += total_price;
+        
+        ;; Save updated property
+        cell updated_property = save_property(
+            name, location, total_supply, price_per_token,
+            monthly_rent, active, uri, available_tokens, holders,
+            created_at, last_rent
+        );
+        
+        properties = udict_set(properties, 32, property_id, updated_property.begin_parse());
+        save_data(super_admin, admins, next_property_id, properties, paused, total_funds, total_rent);
+        
+        ;; Return excess funds
+        if (msg_value > total_price) {
+            var msg = begin_cell()
+                .store_uint(0x10, 6)
+                .store_slice(sender_address)
+                .store_coins(msg_value - total_price)
+                .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+                .end_cell();
+            send_raw_message(msg, 1);
+        }
+        
+        return ();
+    }
+    
+    if (op == op::distribute_rent) {
+        throw_unless(error::not_admin, is_super | is_regular_admin);
+        
+        int property_id = in_msg_body~load_uint(32);
+        int rent_amount = in_msg_body~load_coins();
+        
+        (slice property_slice, int found) = properties.udict_get?(32, property_id);
+        throw_unless(error::property_not_found, found);
+        
+        (cell name, cell location, int total_supply, int price_per_token,
+         int monthly_rent, int active, cell uri, int available_tokens, 
+         cell holders, int created_at, int last_rent) = 
+            load_property(property_slice~load_ref());
+        
+        ;; Distribute rent proportionally to all holders
+        int tokens_sold = total_supply - available_tokens;
+        if (tokens_sold > 0) {
+            ;; Iterate through holders and send proportional rent
+            int key = -1;
+            do {
+                (key, slice holder_data, int f) = holders.udict_get_next?(256, key);
+                if (f) {
+                    int holder_balance = holder_data~load_coins();
+                    slice holder_address = holder_data~load_msg_addr();
+                    int holder_rent = (rent_amount * holder_balance) / tokens_sold;
+                    
+                    if (holder_rent > 0) {
+                        ;; Send rent payment to holder
+                        var msg = begin_cell()
+                            .store_uint(0x10, 6)
+                            .store_slice(holder_address)
+                            .store_coins(holder_rent)
+                            .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+                            .store_uint(0, 32) ;; Rent payment tag
+                            .store_uint(property_id, 32)
+                            .end_cell();
+                        send_raw_message(msg, 1);
+                    }
+                }
+            } until (~ f);
+            
+            total_rent += rent_amount;
+            
+            ;; Update last rent distribution time
+            cell updated_property = save_property(
+                name, location, total_supply, price_per_token,
+                monthly_rent, active, uri, available_tokens, holders,
+                created_at, now()
+            );
+            
+            properties = udict_set(properties, 32, property_id, updated_property.begin_parse());
+        }
+        
+        save_data(super_admin, admins, next_property_id, properties, paused, total_funds, total_rent);
+        return ();
+    }
+    
+    if (op == op::pause) {
+        throw_unless(error::not_admin, is_super | is_regular_admin);
+        save_data(super_admin, admins, next_property_id, properties, 1, total_funds, total_rent);
+        return ();
+    }
+    
+    if (op == op::unpause) {
+        throw_unless(error::not_admin, is_super | is_regular_admin);
+        save_data(super_admin, admins, next_property_id, properties, 0, total_funds, total_rent);
+        return ();
+    }
+    
+    throw(0xffff); ;; Unknown operation
+}
+
+;; Get methods
+
+(int) get_next_property_id() method_id {
+    (_, _, int next_id, _, _, _, _) = load_data();
+    return next_id;
+}
+
+(int) is_paused() method_id {
+    (_, _, _, _, int paused, _, _) = load_data();
+    return paused;
+}
+
+(int) is_admin_address(slice address) method_id {
+    (slice super_admin, cell admins, _, _, _, _, _) = load_data();
+    if (equal_slices(address, super_admin)) {
+        return 2; ;; Super admin
+    }
+    if (is_admin(address, admins)) {
+        return 1; ;; Regular admin
+    }
+    return 0; ;; Not admin
+}
+
+(int, int) get_platform_stats() method_id {
+    (_, _, _, _, _, int total_funds, int total_rent) = load_data();
+    return (total_funds, total_rent);
+}
+
+(cell) get_property_info(int property_id) method_id {
+    (_, _, _, cell properties, _, _, _) = load_data();
+    (slice property_slice, int found) = properties.udict_get?(32, property_id);
+    throw_unless(error::property_not_found, found);
+    return property_slice~load_ref();
+}
+
+(int) get_user_balance(int property_id, slice user_address) method_id {
+    (_, _, _, cell properties, _, _, _) = load_data();
+    (slice property_slice, int found) = properties.udict_get?(32, property_id);
+    throw_unless(error::property_not_found, found);
+    
+    (_, _, _, _, _, _, _, _, cell holders, _, _) = load_property(property_slice~load_ref());
+    
+    (slice holder_data_slice, int holder_found) = holders.udict_get?(256, slice_hash(user_address));
+    if (holder_found) {
+        return holder_data_slice~load_coins();
+    }
+    return 0;
+}
+
+;; Get all user holdings across all properties for dashboard
+(cell) get_user_holdings(slice user_address) method_id {
+    (_, _, int next_property_id, cell properties, _, _, _) = load_data();
+    
+    cell result = new_dict();
+    int property_id = 0;
+    
+    while (property_id < next_property_id) {
+        (slice property_slice, int found) = properties.udict_get?(32, property_id);
+        if (found) {
+            (cell name, cell location, int total_supply, int price_per_token,
+             int monthly_rent, int active, cell uri, int available_tokens, 
+             cell holders, int created_at, int last_rent) = 
+                load_property(property_slice~load_ref());
+            
+            (slice holder_data_slice, int holder_found) = holders.udict_get?(256, slice_hash(user_address));
+            if (holder_found) {
+                int balance = holder_data_slice~load_coins();
+                if (balance > 0) {
+                    ;; Store property info with user's balance
+                    result = udict_set(result, 32, property_id,
+                        begin_cell()
+                            .store_coins(balance)
+                            .store_ref(name)
+                            .store_ref(location)
+                            .store_coins(price_per_token)
+                            .store_coins(monthly_rent)
+                            .store_uint(active, 1)
+                            .end_cell().begin_parse());
+                }
+            }
+        }
+        property_id += 1;
+    }
+    
+    return result;
+}

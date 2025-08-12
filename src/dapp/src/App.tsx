@@ -7,6 +7,7 @@ import NetworkBadge from "./components/NetBadge";
 import Whitepaper from "./components/Whitepaper";
 import RiskDisclosure from "./components/RiskDisclosure";
 import Legal from "./components/Legal";
+import Contract from "./components/Contract";
 import { AdminPanel } from "./components/AdminPanel";
 import { REITxPropertiesChakra } from "./components/REITxPropertiesChakra";
 import { InvestorDashboard } from "./components/InvestorDashboard";
@@ -19,6 +20,7 @@ function App() {
   const [isRiskDisclosureRoute, setIsRiskDisclosureRoute] = useState(false);
   const [isDashboardRoute, setIsDashboardRoute] = useState(false);
   const [isLegalRoute, setIsLegalRoute] = useState(false);
+  const [isContractRoute, setIsContractRoute] = useState(false);
   const [isAdminRoute, setIsAdminRoute] = useState(false);
   const [pathParams, setPathParams] = useState<{
     wrapper?: string;
@@ -103,6 +105,12 @@ function App() {
     // Check if this is the legal route
     if (pathParts[0] === "legal") {
       setIsLegalRoute(true);
+      return;
+    }
+    
+    // Check if this is the contract route
+    if (pathParts[0] === "contract") {
+      setIsContractRoute(true);
       return;
     }
     
@@ -237,6 +245,15 @@ function App() {
                     variant="ghost" 
                     size="sm" 
                     fontWeight="medium" 
+                    onClick={() => navigateTo('contract')}
+                    bg={isContractRoute ? "gray.100" : "transparent"}
+                  >
+                    Contract
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    fontWeight="medium" 
                     onClick={() => navigateTo('admin')}
                     bg={isAdminRoute ? "gray.100" : "transparent"}
                   >
@@ -250,7 +267,7 @@ function App() {
         </Box>
 
         {/* Hero Section */}
-        {!isWhitepaperRoute && !isRiskDisclosureRoute && !isDashboardRoute && !isLegalRoute && !isAdminRoute && !pathParams?.wrapper && (
+        {!isWhitepaperRoute && !isRiskDisclosureRoute && !isDashboardRoute && !isLegalRoute && !isContractRoute && !isAdminRoute && !pathParams?.wrapper && (
           <Box
             position="relative"
             h={{ base: "calc(100vh - 80px)", md: "70vh" }}
@@ -327,6 +344,8 @@ function App() {
             <InvestorDashboard />
           ) : isLegalRoute ? (
             <Legal />
+          ) : isContractRoute ? (
+            <Contract />
           ) : isAdminRoute ? (
             <AdminPanel />
           ) : pathParams?.wrapper ? (

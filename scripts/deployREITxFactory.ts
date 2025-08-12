@@ -24,6 +24,7 @@ export async function run(provider: NetworkProvider) {
         adminAddress: deployerAddress,
         nextPropertyId: 0,
         properties: Dictionary.empty<number, Cell>(),
+        userBalances: Dictionary.empty<number, Cell>(),
         paused: false
     };
 

@@ -15,6 +15,7 @@ export type REITxFactoryConfig = {
     adminAddress: Address;
     nextPropertyId: number;
     properties: Dictionary<number, Cell>;
+    userBalances: Dictionary<number, Cell>;
     paused: boolean;
 };
 
@@ -34,6 +35,7 @@ export function REITxFactoryConfigToCell(config: REITxFactoryConfig): Cell {
         .storeAddress(config.adminAddress)
         .storeUint(config.nextPropertyId, 32)
         .storeDict(config.properties)
+        .storeDict(config.userBalances)
         .storeBit(config.paused)
         .endCell();
 }

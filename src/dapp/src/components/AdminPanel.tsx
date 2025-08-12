@@ -130,8 +130,13 @@ export function AdminPanel() {
       return 2; // Super admin
     }
     
-    // In production, this would call the contract's is_admin_address method
-    // For now, we'll simulate with the configured super admin
+    // Check against configured regular admins
+    if (contractConfig.admins && contractConfig.admins.includes(address)) {
+      return 1; // Regular admin
+    }
+    
+    // In production, this would also call the contract's is_admin_address method
+    // to get the latest admin list from the blockchain
     return 0;
   };
 
