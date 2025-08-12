@@ -1,0 +1,79 @@
+{
+  "REITxFactory": {
+    "defaultAddress": "EQDREITxContractAddressPlaceholder",
+    "tabName": "REITx Factory",
+    "sendFunctions": {
+      "sendCreateProperty": {
+        "tabName": "Create Property",
+        "params": {
+          "name": {
+            "fieldTitle": "Property Name"
+          },
+          "location": {
+            "fieldTitle": "Location"
+          },
+          "totalSupply": {
+            "fieldTitle": "Total Token Supply"
+          },
+          "pricePerToken": {
+            "fieldTitle": "Price Per Token (nanotons)"
+          },
+          "monthlyRent": {
+            "fieldTitle": "Monthly Rent (nanotons)"
+          },
+          "uri": {
+            "fieldTitle": "Property URI"
+          }
+        }
+      },
+      "sendBuyTokens": {
+        "tabName": "Buy Tokens",
+        "params": {
+          "propertyId": {
+            "fieldTitle": "Property ID"
+          },
+          "amount": {
+            "fieldTitle": "Number of Tokens"
+          },
+          "value": {
+            "fieldTitle": "Payment Amount (nanotons)"
+          }
+        }
+      }
+    },
+    "getFunctions": {
+      "getPropertyInfo": {
+        "tabName": "Property Info",
+        "params": {
+          "propertyId": {
+            "fieldTitle": "Property ID"
+          }
+        },
+        "outNames": ["name", "location", "totalSupply", "pricePerToken", "monthlyRent", "active", "uri", "availableTokens"]
+      },
+      "getUserBalance": {
+        "tabName": "User Balance", 
+        "params": {
+          "propertyId": {
+            "fieldTitle": "Property ID"
+          },
+          "userAddress": {
+            "fieldTitle": "User Address"
+          }
+        },
+        "outNames": ["balance"]
+      },
+      "getNextPropertyId": {
+        "tabName": "Next Property ID",
+        "params": {},
+        "outNames": ["nextId"]
+      },
+      "getIsPaused": {
+        "tabName": "Is Paused",
+        "params": {},
+        "outNames": ["paused"]
+      }
+    },
+    "definedTypes": {}
+  }
+}
