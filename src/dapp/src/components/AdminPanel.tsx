@@ -264,82 +264,94 @@ export function AdminPanel() {
       
       // Check for PINATA_JWT in environment
       const pinataJwt = import.meta.env.VITE_PINATA_JWT;
-      if (!pinataJwt) {
-        throw new Error('PINATA_JWT not configured. Please add VITE_PINATA_JWT to your .env file');
-      }
       
-      // Upload metadata to Pinata
-      setIsUploadingMetadata(true);
-      toast({
-        title: 'Uploading metadata to IPFS...',
-        status: 'info',
-        duration: 3000,
-        isClosable: true,
-      });
+      // For demo/testing, use a mock URI if Pinata is not configured
+      let metadataUri = '';
       
-      const pinata = new PinataUploader(pinataJwt);
-      
-      // Upload images to Pinata first
-      const imageUrls: string[] = [];
-      if (propertyForm.imageFiles.length > 0) {
+      if (pinataJwt) {
+        // Upload metadata to Pinata
+        setIsUploadingMetadata(true);
         toast({
-          title: `Uploading ${propertyForm.imageFiles.length} images to IPFS...`,
+          title: 'Uploading metadata to IPFS...',
           status: 'info',
           duration: 3000,
           isClosable: true,
         });
         
-        for (const file of propertyForm.imageFiles) {
-          try {
-            const imageUrl = await pinata.uploadFile(file);
-            imageUrls.push(imageUrl);
-          } catch (error) {
-            console.error(`Failed to upload image ${file.name}:`, error);
-            toast({
-              title: 'Image upload warning',
-              description: `Failed to upload ${file.name}, continuing with other images`,
-              status: 'warning',
-              duration: 3000,
-              isClosable: true,
-            });
+        const pinata = new PinataUploader(pinataJwt);
+        
+        // Upload images to Pinata first
+        const imageUrls: string[] = [];
+        if (propertyForm.imageFiles.length > 0) {
+          toast({
+            title: `Uploading ${propertyForm.imageFiles.length} images to IPFS...`,
+            status: 'info',
+            duration: 3000,
+            isClosable: true,
+          });
+          
+          for (const file of propertyForm.imageFiles) {
+            try {
+              const imageUrl = await pinata.uploadFile(file);
+              imageUrls.push(imageUrl);
+            } catch (error) {
+              console.error(`Failed to upload image ${file.name}:`, error);
+              toast({
+                title: 'Image upload warning',
+                description: `Failed to upload ${file.name}, continuing with other images`,
+                status: 'warning',
+                duration: 3000,
+                isClosable: true,
+              });
+            }
           }
         }
+        
+        // Process amenities from comma-separated string
+        const amenities = propertyForm.amenities
+          .split(',')
+          .map(a => a.trim())
+          .filter(a => a.length > 0);
+        
+        // Build metadata object
+        const metadata = buildPropertyMetadata({
+          name: propertyForm.name,
+          location: propertyForm.location,
+          description: propertyForm.description,
+          images: imageUrls,
+          totalSupply: propertyForm.totalSupply,
+          pricePerToken: propertyForm.pricePerToken,
+          monthlyRent: propertyForm.monthlyRent,
+          propertyType: propertyForm.propertyType || undefined,
+          yearBuilt: propertyForm.yearBuilt || undefined,
+          squareFootage: propertyForm.squareFootage || undefined,
+          bedrooms: propertyForm.bedrooms ? parseInt(propertyForm.bedrooms) : undefined,
+          bathrooms: propertyForm.bathrooms ? parseInt(propertyForm.bathrooms) : undefined,
+          amenities: amenities.length > 0 ? amenities : undefined,
+        });
+        
+        // Upload to Pinata
+        metadataUri = await pinata.uploadJSON(metadata);
+        setIsUploadingMetadata(false);
+        
+        toast({
+          title: 'Metadata uploaded successfully',
+          description: `IPFS URI: ${metadataUri}`,
+          status: 'success',
+          duration: 5000,
+          isClosable: true,
+        });
+      } else {
+        // Use mock URI for demo/testing
+        metadataUri = `https://demo.reitx.com/metadata/${Date.now()}.json`;
+        toast({
+          title: 'Using demo metadata',
+          description: 'Property will be created with demo metadata URI',
+          status: 'info',
+          duration: 3000,
+          isClosable: true,
+        });
       }
-      
-      // Process amenities from comma-separated string
-      const amenities = propertyForm.amenities
-        .split(',')
-        .map(a => a.trim())
-        .filter(a => a.length > 0);
-      
-      // Build metadata object
-      const metadata = buildPropertyMetadata({
-        name: propertyForm.name,
-        location: propertyForm.location,
-        description: propertyForm.description,
-        images: imageUrls,
-        totalSupply: propertyForm.totalSupply,
-        pricePerToken: propertyForm.pricePerToken,
-        monthlyRent: propertyForm.monthlyRent,
-        propertyType: propertyForm.propertyType || undefined,
-        yearBuilt: propertyForm.yearBuilt || undefined,
-        squareFootage: propertyForm.squareFootage || undefined,
-        bedrooms: propertyForm.bedrooms ? parseInt(propertyForm.bedrooms) : undefined,
-        bathrooms: propertyForm.bathrooms ? parseInt(propertyForm.bathrooms) : undefined,
-        amenities: amenities.length > 0 ? amenities : undefined,
-      });
-      
-      // Upload to Pinata
-      const metadataUri = await pinata.uploadJSON(metadata);
-      setIsUploadingMetadata(false);
-      
-      toast({
-        title: 'Metadata uploaded successfully',
-        description: `IPFS URI: ${metadataUri}`,
-        status: 'success',
-        duration: 5000,
-        isClosable: true,
-      });
       
       // Create property on blockchain with generated URI
       await createProperty({
@@ -382,7 +394,9 @@ export function AdminPanel() {
       // Reload properties
       await loadAdminData();
     } catch (error: any) {
+      console.error('Error creating property:', error);
       setIsUploadingMetadata(false);
+      setIsLoading(false);
       toast({
         title: 'Error creating property',
         description: error.message || 'Failed to create property',
@@ -390,8 +404,10 @@ export function AdminPanel() {
         duration: 5000,
         isClosable: true,
       });
+    } finally {
+      setIsLoading(false);
+      setIsUploadingMetadata(false);
     }
-    setIsLoading(false);
   };
 
   const handleAddAdmin = async () => {
