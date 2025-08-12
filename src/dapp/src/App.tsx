@@ -7,6 +7,7 @@ import NetworkBadge from "./components/NetBadge";
 import Whitepaper from "./components/Whitepaper";
 import RiskDisclosure from "./components/RiskDisclosure";
 import Legal from "./components/Legal";
+import { AdminPanel } from "./components/AdminPanel";
 import { REITxPropertiesChakra } from "./components/REITxPropertiesChakra";
 import { InvestorDashboard } from "./components/InvestorDashboard";
 import { modernTheme } from "./utils/theme";
@@ -18,6 +19,7 @@ function App() {
   const [isRiskDisclosureRoute, setIsRiskDisclosureRoute] = useState(false);
   const [isDashboardRoute, setIsDashboardRoute] = useState(false);
   const [isLegalRoute, setIsLegalRoute] = useState(false);
+  const [isAdminRoute, setIsAdminRoute] = useState(false);
   const [pathParams, setPathParams] = useState<{
     wrapper?: string;
     method?: string;
@@ -101,6 +103,12 @@ function App() {
     // Check if this is the legal route
     if (pathParts[0] === "legal") {
       setIsLegalRoute(true);
+      return;
+    }
+    
+    // Check if this is the admin route
+    if (pathParts[0] === "admin") {
+      setIsAdminRoute(true);
       return;
     }
 
@@ -225,6 +233,15 @@ function App() {
                   >
                     Legal
                   </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    fontWeight="medium" 
+                    onClick={() => navigateTo('admin')}
+                    bg={isAdminRoute ? "gray.100" : "transparent"}
+                  >
+                    Admin
+                  </Button>
                 </Flex>
               </Flex>
               <ConnectButton />
@@ -233,7 +250,7 @@ function App() {
         </Box>
 
         {/* Hero Section */}
-        {!isWhitepaperRoute && !isRiskDisclosureRoute && !isDashboardRoute && !isLegalRoute && !pathParams?.wrapper && (
+        {!isWhitepaperRoute && !isRiskDisclosureRoute && !isDashboardRoute && !isLegalRoute && !isAdminRoute && !pathParams?.wrapper && (
           <Box
             position="relative"
             h={{ base: "calc(100vh - 80px)", md: "70vh" }}
@@ -310,6 +327,8 @@ function App() {
             <InvestorDashboard />
           ) : isLegalRoute ? (
             <Legal />
+          ) : isAdminRoute ? (
+            <AdminPanel />
           ) : pathParams?.wrapper ? (
             <Grid templateColumns={{ base: "1fr", lg: "1fr" }} gap={8}>
               <GridItem>

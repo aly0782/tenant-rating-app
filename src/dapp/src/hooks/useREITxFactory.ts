@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Address, fromNano, toNano } from '@ton/core';
+import { Address, fromNano, toNano, beginCell } from '@ton/core';
 import { useTonClient } from './useTonClient';
 import { useTonConnect } from './useTonConnect';
 import { REITxFactory, PropertyInfo } from '../wrappers/REITxFactory';
 import { TonClient } from '@ton/ton';
+import contractConfig from '../config/contract.json';
 
 interface PropertyHolding {
   propertyId: number;
@@ -30,8 +31,8 @@ export function useREITxFactory(factoryAddress?: string) {
     }
 
     try {
-      // Use test contract address - replace with your deployed contract address
-      const address = factoryAddress || 'EQB-OAFqUknskjjg0sTw7Jb8ubjxipwsLZBPiUxkHzEY1LPL'; // Testnet placeholder
+      // Use contract address from configuration
+      const address = factoryAddress || contractConfig.factoryAddress || 'EQB-OAFqUknskjjg0sTw7Jb8ubjxipwsLZBPiUxkHzEY1LPL';
       if (!address || address === 'EQDREITxContractAddressPlaceholder') {
         setError('Contract not deployed yet. Please deploy the REITx Factory contract first.');
         setIsLoading(false);
