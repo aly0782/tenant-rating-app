@@ -88,19 +88,21 @@ export function useREITxFactory(factoryAddress?: string) {
           if (userBalance > 0n) {
             const propertyInfo = await factory.getPropertyInfo(provider as any, i);
             const soldTokens = propertyInfo.totalSupply - propertyInfo.availableTokens;
-            const ownershipPercentage = soldTokens > 0n ? 
-              Number(userBalance * 10000n / soldTokens) / 100 : 0;
+            const ownershipPercentage = soldTokens > 0n
+              ? Number((userBalance * 10000n) / soldTokens) / 100
+              : 0;
             
             // Calculate user's investment value
             const userInvestment = userBalance * propertyInfo.pricePerToken;
             
             // Assume 2.5% annual appreciation for current value calculation
-            const appreciationRate = 1.025;
-            const currentValue = userInvestment * BigInt(Math.floor(appreciationRate * 1000000)) / 1000000n;
+            const appreciationMultiplier = 1_025_000n; // 1.025 * 1e6
+            const currentValue = (userInvestment * appreciationMultiplier) / 1_000_000n;
             
             // Calculate monthly yield based on user's proportion of total rent
-            const monthlyYield = soldTokens > 0n ? 
-              (propertyInfo.monthlyRent * userBalance) / soldTokens : 0n;
+            const monthlyYield = soldTokens > 0n
+              ? (propertyInfo.monthlyRent * userBalance) / soldTokens
+              : 0n;
             
             // Mock total returns - in production, this would come from a dividend tracking contract
             const totalReturns = monthlyYield * 6n; // Assume 6 months of returns
