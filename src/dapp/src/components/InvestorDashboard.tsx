@@ -80,8 +80,13 @@ export function InvestorDashboard() {
 
   useEffect(() => {
     const fetchUserHoldings = async () => {
-      if (!isConnected || !userAddress || contractLoading) {
+      if (!isConnected || !userAddress) {
         setIsLoading(false);
+        return;
+      }
+
+      // Skip if contract is still loading
+      if (contractLoading) {
         return;
       }
 
@@ -148,7 +153,7 @@ export function InvestorDashboard() {
     };
 
     fetchUserHoldings();
-  }, [isConnected, userAddress, contractLoading, contractError, getUserHoldings]);
+  }, [isConnected, userAddress, contractLoading, contractError]); // Remove getUserHoldings to prevent loops
 
   const calculatePortfolioStats = () => {
     const totalInvested = holdings.reduce((sum, holding) => sum + holding.totalInvested, 0);

@@ -1,4 +1,3 @@
-import { getHttpEndpoint } from '@orbs-network/ton-access';
 import { TonClient } from '@ton/ton';
 import { useAsyncInitialize } from './useAsyncInitialize';
 
@@ -6,7 +5,8 @@ export function useTonClient() {
   const client = useAsyncInitialize(
     async () =>
       new TonClient({
-        endpoint: await getHttpEndpoint({ network: 'testnet' }),
+        // Use direct TON Center API to avoid rate limiting from Orbs
+        endpoint: 'https://testnet.toncenter.com/api/v2/jsonRPC',
       })
   );
 

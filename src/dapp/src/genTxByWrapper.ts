@@ -127,9 +127,22 @@ export class Executor {
       network = tcUI.wallet.account.chain === CHAIN.MAINNET ? "mainnet" : "testnet";
     } else console.warn("No wallet connected, only the get methods");
 
-    const tc = new TonClient4({
-      endpoint: await getHttpV4Endpoint({ network }),
-    });
+    let endpoint: string;
+    try {
+      // Try to get endpoint with timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      endpoint = await getHttpV4Endpoint({ network });
+      clearTimeout(timeoutId);
+    } catch (error) {
+      console.warn('Failed to get endpoint from Orbs, using fallback:', error);
+      // Use fallback endpoint based on network
+      endpoint = network === 'testnet' 
+        ? 'https://testnet.toncenter.com/api/v4/jsonRPC'
+        : 'https://toncenter.com/api/v4/jsonRPC';
+    }
+
+    const tc = new TonClient4({ endpoint });
     return new Executor(tc, via);
   }
 

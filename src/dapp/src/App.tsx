@@ -166,7 +166,27 @@ function App() {
                   >
                     Home
                   </Button>
-                  <Button variant="ghost" size="sm" fontWeight="medium">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    fontWeight="medium"
+                    onClick={() => {
+                      if (window.location.pathname === '/') {
+                        const propertiesSection = document.querySelector('.properties-section');
+                        if (propertiesSection) {
+                          propertiesSection.scrollIntoView({ behavior: 'smooth' });
+                        }
+                      } else {
+                        navigateHome();
+                        setTimeout(() => {
+                          const propertiesSection = document.querySelector('.properties-section');
+                          if (propertiesSection) {
+                            propertiesSection.scrollIntoView({ behavior: 'smooth' });
+                          }
+                        }, 100);
+                      }
+                    }}
+                  >
                     Properties
                   </Button>
                   <Button 
