@@ -121,17 +121,26 @@ export function REITxPropertiesChakra() {
       
       try {
         setLoadingProperties(true);
+        // Add delay to prevent immediate API calls on mount
+        await new Promise(resolve => setTimeout(resolve, 500));
         const props = await getAllProperties();
         setContractProperties(props);
-      } catch (err) {
+      } catch (err: any) {
         console.error('Failed to load properties:', err);
+        // Don't retry on rate limit errors
+        if (err?.message?.includes('429')) {
+          console.log('Rate limited, will not retry automatically');
+        }
       } finally {
         setLoadingProperties(false);
       }
     };
 
-    loadContractProperties();
-  }, [factory, getAllProperties]);
+    // Only load once on mount, not on every factory change
+    if (factory && contractProperties.length === 0) {
+      loadContractProperties();
+    }
+  }, [factory]); // Remove getAllProperties from deps to prevent loops
 
   const calculateFundingProgress = (property: Property) => {
     const sold = Number(property.totalSupply) - Number(property.availableTokens);

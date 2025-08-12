@@ -52,11 +52,23 @@ export function useREITxFactory(factoryAddress?: string) {
     
     try {
       const provider = (client as TonClient).provider(factory.address);
+      
+      // Add a small delay to avoid rate limiting
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       const nextPropertyId = await factory.getNextPropertyId(provider as any);
       const properties: PropertyInfo[] = [];
       
-      for (let i = 0; i < nextPropertyId; i++) {
+      // Limit to max 10 properties for now to avoid rate limiting
+      const maxProperties = Math.min(nextPropertyId, 10);
+      
+      for (let i = 0; i < maxProperties; i++) {
         try {
+          // Add delay between requests to avoid rate limiting
+          if (i > 0) {
+            await new Promise(resolve => setTimeout(resolve, 200));
+          }
+          
           const propertyInfo = await factory.getPropertyInfo(provider as any, i);
           properties.push({ ...propertyInfo, id: i } as PropertyInfo & { id: number });
         } catch (err) {

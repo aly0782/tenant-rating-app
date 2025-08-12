@@ -6,6 +6,7 @@ import BodyRoot from "./BodyRoot";
 import NetworkBadge from "./components/NetBadge";
 import Whitepaper from "./components/Whitepaper";
 import RiskDisclosure from "./components/RiskDisclosure";
+import Legal from "./components/Legal";
 import { REITxPropertiesChakra } from "./components/REITxPropertiesChakra";
 import { InvestorDashboard } from "./components/InvestorDashboard";
 import { modernTheme } from "./utils/theme";
@@ -16,6 +17,7 @@ function App() {
   const [isWhitepaperRoute, setIsWhitepaperRoute] = useState(false);
   const [isRiskDisclosureRoute, setIsRiskDisclosureRoute] = useState(false);
   const [isDashboardRoute, setIsDashboardRoute] = useState(false);
+  const [isLegalRoute, setIsLegalRoute] = useState(false);
   const [pathParams, setPathParams] = useState<{
     wrapper?: string;
     method?: string;
@@ -93,6 +95,12 @@ function App() {
     // Check if this is the dashboard route
     if (pathParts[0] === "dashboard") {
       setIsDashboardRoute(true);
+      return;
+    }
+    
+    // Check if this is the legal route
+    if (pathParts[0] === "legal") {
+      setIsLegalRoute(true);
       return;
     }
 
@@ -188,6 +196,15 @@ function App() {
                   >
                     Risk Disclosure
                   </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    fontWeight="medium" 
+                    onClick={() => navigateTo('legal')}
+                    bg={isLegalRoute ? "gray.100" : "transparent"}
+                  >
+                    Legal
+                  </Button>
                 </Flex>
               </Flex>
               <ConnectButton />
@@ -196,7 +213,7 @@ function App() {
         </Box>
 
         {/* Hero Section */}
-        {!isWhitepaperRoute && !isRiskDisclosureRoute && !isDashboardRoute && !pathParams?.wrapper && (
+        {!isWhitepaperRoute && !isRiskDisclosureRoute && !isDashboardRoute && !isLegalRoute && !pathParams?.wrapper && (
           <Box
             position="relative"
             h={{ base: "calc(100vh - 80px)", md: "70vh" }}
@@ -271,6 +288,8 @@ function App() {
             <RiskDisclosure />
           ) : isDashboardRoute ? (
             <InvestorDashboard />
+          ) : isLegalRoute ? (
+            <Legal />
           ) : pathParams?.wrapper ? (
             <Grid templateColumns={{ base: "1fr", lg: "1fr" }} gap={8}>
               <GridItem>

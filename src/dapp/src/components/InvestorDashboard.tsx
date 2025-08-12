@@ -94,6 +94,8 @@ export function InvestorDashboard() {
       setIsLoading(true);
       
       try {
+        // Add delay to prevent immediate API calls on mount
+        await new Promise(resolve => setTimeout(resolve, 1000));
         const contractHoldings = await getUserHoldings();
         
         // Transform contract data to display format
