@@ -107,10 +107,13 @@ export function AdminPanel() {
     const checkAdminStatus = async () => {
       if (!isConnected || !userAddress || !factory) return;
       
+      console.log('Checking admin status for:', userAddress);
+      
       try {
         // This would call the contract's is_admin_address method
         // For now, we'll simulate it
         const adminStatus = await checkIfAdmin(userAddress);
+        console.log('Admin status result:', adminStatus);
         setIsAdmin(adminStatus);
         
         if (adminStatus > 0) {
@@ -125,15 +128,46 @@ export function AdminPanel() {
   }, [isConnected, userAddress, factory]);
 
   const checkIfAdmin = async (address: string): Promise<number> => {
+    // Normalize the address to handle different formats
+    const normalizeAddress = (addr: string): string => {
+      try {
+        // Parse and convert to raw format for comparison
+        const parsed = Address.parse(addr);
+        return parsed.toRawString();
+      } catch {
+        return addr;
+      }
+    };
+
+    const normalizedUserAddress = normalizeAddress(address);
+    const normalizedSuperAdmin = normalizeAddress(contractConfig.superAdmin);
+    
     // Check against configured super admin first
-    if (address === contractConfig.superAdmin) {
+    if (normalizedUserAddress === normalizedSuperAdmin) {
       return 2; // Super admin
     }
     
     // Check against configured regular admins
-    if (contractConfig.admins && contractConfig.admins.includes(address)) {
-      return 1; // Regular admin
+    if (contractConfig.admins) {
+      for (const admin of contractConfig.admins) {
+        if (normalizeAddress(admin) === normalizedUserAddress) {
+          return 1; // Regular admin
+        }
+      }
     }
+    
+    // Also check the raw address format
+    if (address === contractConfig.superAdmin || contractConfig.admins?.includes(address)) {
+      return address === contractConfig.superAdmin ? 2 : 1;
+    }
+    
+    console.log('Admin check failed:', {
+      userAddress: address,
+      normalizedUser: normalizedUserAddress,
+      superAdmin: contractConfig.superAdmin,
+      normalizedSuper: normalizedSuperAdmin,
+      admins: contractConfig.admins
+    });
     
     // In production, this would also call the contract's is_admin_address method
     // to get the latest admin list from the blockchain
