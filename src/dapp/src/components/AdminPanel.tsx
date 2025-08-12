@@ -710,7 +710,7 @@ export function AdminPanel() {
         <Box>
           <HStack justify="space-between" mb={4}>
             <VStack align="start" spacing={1}>
-              <Heading size="xl">Admin Panel</Heading>
+              <Heading size="xl" color="text">Admin Panel</Heading>
               <HStack>
                 <Badge colorScheme={isAdmin === 2 ? 'purple' : 'blue'} fontSize="md" px={3} py={1}>
                   {isAdmin === 2 ? 'Super Admin' : 'Admin'}
@@ -748,24 +748,24 @@ export function AdminPanel() {
         {/* Platform Statistics */}
         <Card>
           <CardHeader>
-            <Heading size="md">Platform Statistics</Heading>
+            <Heading size="md" color="text">Platform Statistics</Heading>
           </CardHeader>
           <CardBody>
             <SimpleGrid columns={{ base: 1, md: 3 }} spacing={6}>
               <Stat>
-                <StatLabel>Total Funds Raised</StatLabel>
-                <StatNumber>{platformStats.totalFunds} TON</StatNumber>
-                <StatHelpText>Lifetime total</StatHelpText>
+                <StatLabel color="text" opacity={0.8}>Total Funds Raised</StatLabel>
+                <StatNumber color="text">{platformStats.totalFunds} TON</StatNumber>
+                <StatHelpText color="text" opacity={0.7}>Lifetime total</StatHelpText>
               </Stat>
               <Stat>
-                <StatLabel>Total Rent Distributed</StatLabel>
-                <StatNumber>{platformStats.totalRent} TON</StatNumber>
-                <StatHelpText>To all investors</StatHelpText>
+                <StatLabel color="text" opacity={0.8}>Total Rent Distributed</StatLabel>
+                <StatNumber color="text">{platformStats.totalRent} TON</StatNumber>
+                <StatHelpText color="text" opacity={0.7}>To all investors</StatHelpText>
               </Stat>
               <Stat>
-                <StatLabel>Active Properties</StatLabel>
-                <StatNumber>{properties.filter(p => p.active).length}</StatNumber>
-                <StatHelpText>Out of {properties.length} total</StatHelpText>
+                <StatLabel color="text" opacity={0.8}>Active Properties</StatLabel>
+                <StatNumber color="text">{properties.filter(p => p.active).length}</StatNumber>
+                <StatHelpText color="text" opacity={0.7}>Out of {properties.length} total</StatHelpText>
               </Stat>
             </SimpleGrid>
           </CardBody>
@@ -774,11 +774,11 @@ export function AdminPanel() {
         {/* Main Tabs */}
         <Tabs colorScheme="blue">
           <TabList>
-            <Tab>Properties</Tab>
-            <Tab>Token Holders</Tab>
-            {isAdmin === 2 && <Tab>Admins</Tab>}
-            <Tab>Rent Distribution</Tab>
-            <Tab>Settings</Tab>
+            <Tab color="text">Properties</Tab>
+            <Tab color="text">Token Holders</Tab>
+            {isAdmin === 2 && <Tab color="text">Admins</Tab>}
+            <Tab color="text">Rent Distribution</Tab>
+            <Tab color="text">Settings</Tab>
           </TabList>
 
           <TabPanels>
@@ -789,22 +789,22 @@ export function AdminPanel() {
                   <Table variant="simple">
                     <Thead>
                       <Tr>
-                        <Th>ID</Th>
-                        <Th>Name</Th>
-                        <Th>Location</Th>
+                        <Th color="text">ID</Th>
+                        <Th color="text">Name</Th>
+                        <Th color="text">Location</Th>
                         <Th isNumeric>Total Supply</Th>
                         <Th isNumeric>Available</Th>
                         <Th isNumeric>Price/Token</Th>
-                        <Th>Status</Th>
-                        <Th>Actions</Th>
+                        <Th color="text">Status</Th>
+                        <Th color="text">Actions</Th>
                       </Tr>
                     </Thead>
                     <Tbody>
                       {properties.map((property) => (
                         <Tr key={property.id}>
-                          <Td>{property.id}</Td>
+                          <Td color="text">{property.id}</Td>
                           <Td fontWeight="semibold">{property.name}</Td>
-                          <Td>{property.location}</Td>
+                          <Td color="text">{property.location}</Td>
                           <Td isNumeric>{property.totalSupply}</Td>
                           <Td isNumeric>{property.availableTokens}</Td>
                           <Td isNumeric>{property.pricePerToken} TON</Td>
@@ -842,7 +842,7 @@ export function AdminPanel() {
                 {/* Property Selection */}
                 <Card>
                   <CardHeader>
-                    <Heading size="md">Select Property</Heading>
+                    <Heading size="md" color="text">Select Property</Heading>
                   </CardHeader>
                   <CardBody>
                     <VStack spacing={4} align="stretch">
@@ -861,7 +861,7 @@ export function AdminPanel() {
                             flexDirection="column"
                             alignItems="flex-start"
                           >
-                            <Text fontWeight="bold" fontSize="sm">{property.name}</Text>
+                            <Text fontWeight="bold" fontSize="sm" color="text">{property.name}</Text>
                             <Text fontSize="xs" color="text" opacity={0.7}>
                               {property.totalSupply - property.availableTokens} tokens sold
                             </Text>
@@ -877,7 +877,7 @@ export function AdminPanel() {
                   <Card>
                     <CardHeader>
                       <HStack justify="space-between">
-                        <Heading size="md">Token Holders</Heading>
+                        <Heading size="md" color="text">Token Holders</Heading>
                         <Badge colorScheme="blue" fontSize="md" px={3} py={1}>
                           {tokenHolders.length} holders
                         </Badge>
@@ -888,7 +888,7 @@ export function AdminPanel() {
                         {/* USDC Distribution Controls */}
                         <Box borderWidth={1} borderRadius="md" p={4} bg="hover">
                           <VStack spacing={3} align="stretch">
-                            <Text fontWeight="bold">Distribute USDC Dividends</Text>
+                            <Text fontWeight="bold" color="text">Distribute USDC Dividends</Text>
                             <HStack>
                               <InputGroup>
                                 <InputLeftAddon>Total USDC</InputLeftAddon>
@@ -922,7 +922,7 @@ export function AdminPanel() {
                           <Table variant="simple" size="sm">
                             <Thead>
                               <Tr>
-                                <Th>Wallet Address</Th>
+                                <Th color="text">Wallet Address</Th>
                                 <Th isNumeric>Tokens Held</Th>
                                 <Th isNumeric>Ownership %</Th>
                                 {totalUsdcToDistribute && parseFloat(totalUsdcToDistribute) > 0 && (
@@ -957,7 +957,7 @@ export function AdminPanel() {
                         {totalUsdcToDistribute && parseFloat(totalUsdcToDistribute) > 0 && (
                           <Box borderTopWidth={1} pt={3}>
                             <HStack justify="space-between">
-                              <Text fontWeight="bold">Total Distribution:</Text>
+                              <Text fontWeight="bold" color="text">Total Distribution:</Text>
                               <Text fontWeight="bold" fontSize="lg" color="green.600">
                                 ${parseFloat(totalUsdcToDistribute).toFixed(2)} USDC
                               </Text>
@@ -989,7 +989,7 @@ export function AdminPanel() {
                     <CardBody>
                       <VStack spacing={4}>
                         <FormControl>
-                          <FormLabel>Add New Admin</FormLabel>
+                          <FormLabel color="text">Add New Admin</FormLabel>
                           <HStack>
                             <Input
                               placeholder="TON Address (0:...)"
@@ -1014,10 +1014,10 @@ export function AdminPanel() {
                     <Table variant="simple">
                       <Thead>
                         <Tr>
-                          <Th>Address</Th>
-                          <Th>Type</Th>
-                          <Th>Added Date</Th>
-                          <Th>Actions</Th>
+                          <Th color="text">Address</Th>
+                          <Th color="text">Type</Th>
+                          <Th color="text">Added Date</Th>
+                          <Th color="text">Actions</Th>
                         </Tr>
                       </Thead>
                       <Tbody>
@@ -1029,7 +1029,7 @@ export function AdminPanel() {
                                 {admin.type === 'super' ? 'Super Admin' : 'Admin'}
                               </Badge>
                             </Td>
-                            <Td>{admin.addedDate}</Td>
+                            <Td color="text">{admin.addedDate}</Td>
                             <Td>
                               {admin.type !== 'super' && (
                                 <IconButton
@@ -1060,14 +1060,14 @@ export function AdminPanel() {
                       <VStack spacing={4} align="stretch">
                         <HStack justify="space-between">
                           <VStack align="start" spacing={1}>
-                            <Heading size="sm">{property.name}</Heading>
+                            <Heading size="sm" color="text">{property.name}</Heading>
                             <Text fontSize="sm" color="text" opacity={0.7}>
                               Tokens Sold: {property.totalSupply - property.availableTokens} / {property.totalSupply}
                             </Text>
                           </VStack>
                           <VStack align="end" spacing={1}>
                             <Text fontSize="sm" color="text" opacity={0.7}>Monthly Rent</Text>
-                            <Text fontWeight="bold">{property.monthlyRent} TON</Text>
+                            <Text fontWeight="bold" color="text">{property.monthlyRent} TON</Text>
                           </VStack>
                         </HStack>
                         <Divider />
@@ -1095,12 +1095,12 @@ export function AdminPanel() {
               <VStack spacing={4} align="stretch">
                 <Card>
                   <CardHeader>
-                    <Heading size="md">Platform Settings</Heading>
+                    <Heading size="md" color="text">Platform Settings</Heading>
                   </CardHeader>
                   <CardBody>
                     <VStack spacing={4} align="stretch">
                       <FormControl display="flex" alignItems="center">
-                        <FormLabel mb="0">
+                        <FormLabel mb="0" color="text">
                           Emergency Pause
                         </FormLabel>
                         <Switch
@@ -1109,7 +1109,7 @@ export function AdminPanel() {
                           colorScheme="red"
                         />
                       </FormControl>
-                      <Text fontSize="sm" color="gray.600">
+                      <Text fontSize="sm" color="text" opacity={0.6}>
                         When paused, no one can buy or sell tokens. Only admins can perform administrative actions.
                       </Text>
                     </VStack>
@@ -1132,7 +1132,7 @@ export function AdminPanel() {
           <ModalBody>
             <VStack spacing={4}>
               <FormControl isRequired>
-                <FormLabel>Property Name</FormLabel>
+                <FormLabel color="text">Property Name</FormLabel>
                 <Input
                   placeholder="e.g., Luxury Villa in Lisbon"
                   value={propertyForm.name}
@@ -1141,7 +1141,7 @@ export function AdminPanel() {
               </FormControl>
               
               <FormControl isRequired>
-                <FormLabel>Location</FormLabel>
+                <FormLabel color="text">Location</FormLabel>
                 <Input
                   placeholder="e.g., Graça, Lisbon, Portugal"
                   value={propertyForm.location}
@@ -1151,7 +1151,7 @@ export function AdminPanel() {
               
               <HStack w="full">
                 <FormControl isRequired>
-                  <FormLabel>Total Supply</FormLabel>
+                  <FormLabel color="text">Total Supply</FormLabel>
                   <Input
                     placeholder="Total tokens"
                     type="number"
@@ -1161,7 +1161,7 @@ export function AdminPanel() {
                 </FormControl>
                 
                 <FormControl isRequired>
-                  <FormLabel>Price per Token (TON)</FormLabel>
+                  <FormLabel color="text">Price per Token (TON)</FormLabel>
                   <Input
                     placeholder="Price in TON"
                     type="number"
@@ -1172,7 +1172,7 @@ export function AdminPanel() {
               </HStack>
               
               <FormControl>
-                <FormLabel>Monthly Rent (TON)</FormLabel>
+                <FormLabel color="text">Monthly Rent (TON)</FormLabel>
                 <Input
                   placeholder="Expected monthly rent"
                   type="number"
@@ -1182,7 +1182,7 @@ export function AdminPanel() {
               </FormControl>
               
               <FormControl isRequired>
-                <FormLabel>Description</FormLabel>
+                <FormLabel color="text">Description</FormLabel>
                 <Textarea
                   placeholder="Detailed property description..."
                   value={propertyForm.description}
@@ -1192,7 +1192,7 @@ export function AdminPanel() {
               </FormControl>
               
               <FormControl>
-                <FormLabel>Property Images</FormLabel>
+                <FormLabel color="text">Property Images</FormLabel>
                 <VStack align="stretch" spacing={3}>
                   <Input
                     type="file"
@@ -1252,7 +1252,7 @@ export function AdminPanel() {
               
               <HStack w="full">
                 <FormControl>
-                  <FormLabel>Property Type</FormLabel>
+                  <FormLabel color="text">Property Type</FormLabel>
                   <Input
                     placeholder="e.g., Apartment, Villa, Condo"
                     value={propertyForm.propertyType}
@@ -1261,7 +1261,7 @@ export function AdminPanel() {
                 </FormControl>
                 
                 <FormControl>
-                  <FormLabel>Year Built</FormLabel>
+                  <FormLabel color="text">Year Built</FormLabel>
                   <Input
                     placeholder="e.g., 2020"
                     value={propertyForm.yearBuilt}
@@ -1272,7 +1272,7 @@ export function AdminPanel() {
               
               <HStack w="full">
                 <FormControl>
-                  <FormLabel>Square Footage</FormLabel>
+                  <FormLabel color="text">Square Footage</FormLabel>
                   <Input
                     placeholder="e.g., 1500 sq ft"
                     value={propertyForm.squareFootage}
@@ -1281,7 +1281,7 @@ export function AdminPanel() {
                 </FormControl>
                 
                 <FormControl>
-                  <FormLabel>Bedrooms</FormLabel>
+                  <FormLabel color="text">Bedrooms</FormLabel>
                   <Input
                     placeholder="e.g., 3"
                     type="number"
@@ -1291,7 +1291,7 @@ export function AdminPanel() {
                 </FormControl>
                 
                 <FormControl>
-                  <FormLabel>Bathrooms</FormLabel>
+                  <FormLabel color="text">Bathrooms</FormLabel>
                   <Input
                     placeholder="e.g., 2"
                     type="number"
@@ -1302,7 +1302,7 @@ export function AdminPanel() {
               </HStack>
               
               <FormControl>
-                <FormLabel>Amenities</FormLabel>
+                <FormLabel color="text">Amenities</FormLabel>
                 <Textarea
                   placeholder="Enter amenities (comma-separated)\ne.g., Pool, Gym, Parking, Garden"
                   value={propertyForm.amenities}
@@ -1314,7 +1314,7 @@ export function AdminPanel() {
               {propertyForm.uri && (
                 <Alert status="info">
                   <AlertIcon />
-                  <Text fontSize="sm">Metadata URI: {propertyForm.uri}</Text>
+                  <Text fontSize="sm" color="text">Metadata URI: {propertyForm.uri}</Text>
                 </Alert>
               )}
             </VStack>
