@@ -170,6 +170,7 @@ function App() {
                   letterSpacing="tight"
                   cursor="pointer"
                   onClick={navigateHome}
+                  color="text"
                   _hover={{ color: "blue.600" }}
                 >
                   {import.meta.env.VITE_REACT_APP_TITLE || "REITx"}
@@ -387,7 +388,7 @@ function App() {
                     _hover={{ boxShadow: "lg", transform: "translateY(-4px)" }}
                   >
                     <Box w={12} h={12} bg="blue.600" borderRadius="md" />
-                    <Heading size="md">Fractional Ownership</Heading>
+                    <Heading size="md" color="text">Fractional Ownership</Heading>
                     <Text color="text" opacity={0.8}>
                       Own a piece of premium Lisbon real estate with as little as 100 TON. 
                       Diversify your portfolio across multiple tokenized properties.
@@ -407,7 +408,7 @@ function App() {
                     _hover={{ boxShadow: "lg", transform: "translateY(-4px)" }}
                   >
                     <Box w={12} h={12} bg="green.600" borderRadius="md" />
-                    <Heading size="md">Monthly TON Yields</Heading>
+                    <Heading size="md" color="text">Monthly TON Yields</Heading>
                     <Text color="text" opacity={0.8}>
                       Earn passive income from rental payments and revenue sharing, 
                       paid monthly in TON directly to your wallet.
@@ -427,7 +428,7 @@ function App() {
                     _hover={{ boxShadow: "lg", transform: "translateY(-4px)" }}
                   >
                     <Box w={12} h={12} bg="purple.600" borderRadius="md" />
-                    <Heading size="md">Blockchain Transparency</Heading>
+                    <Heading size="md" color="text">Blockchain Transparency</Heading>
                     <Text color="text" opacity={0.8}>
                       Track ownership, rental income, and property performance in real-time. 
                       All transactions secured on the TON blockchain.

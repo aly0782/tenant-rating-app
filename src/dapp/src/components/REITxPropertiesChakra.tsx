@@ -207,10 +207,10 @@ export function REITxPropertiesChakra() {
     <Box py={16} bg="bg">
       <Container maxW="container.xl">
         <VStack spacing={{ base: 4, md: 8 }} mb={{ base: 8, md: 16 }} textAlign="center">
-          <Heading size={{ base: "lg", md: "2xl" }} fontWeight="bold">
+          <Heading size={{ base: "lg", md: "2xl" }} fontWeight="bold" color="text">
             Available Properties on TON
           </Heading>
-          <Text fontSize={{ base: "md", md: "xl" }} color="neutral.600" maxW="container.md" px={{ base: 4, md: 0 }}>
+          <Text fontSize={{ base: "md", md: "xl" }} color="text" opacity={0.7} maxW="container.md" px={{ base: 4, md: 0 }}>
             Invest in premium Portuguese real estate through blockchain tokenization. 
             Own fractions, earn monthly yields in TON cryptocurrency.
           </Text>
@@ -227,7 +227,7 @@ export function REITxPropertiesChakra() {
         
         {loadingProperties ? (
           <Box textAlign="center" py={16}>
-            <Text fontSize="lg" color="neutral.600">Loading properties from blockchain...</Text>
+            <Text fontSize="lg" color="text" opacity={0.7}>Loading properties from blockchain...</Text>
           </Box>
         ) : (
           <Grid templateColumns={{ base: '1fr', md: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' }} gap={8}>
@@ -277,13 +277,13 @@ export function REITxPropertiesChakra() {
                 <CardBody>
                   <VStack align="flex-start" spacing={4}>
                     <VStack align="flex-start" spacing={1}>
-                      <Heading size={{ base: "sm", md: "md" }} lineHeight="short">
+                      <Heading size={{ base: "sm", md: "md" }} lineHeight="short" color="text">
                         {displayProperty.name}
                       </Heading>
-                      <Text color="neutral.600" fontSize={{ base: "xs", md: "sm" }}>
+                      <Text color="text" opacity={0.7} fontSize={{ base: "xs", md: "sm" }}>
                         {displayProperty.location}
                       </Text>
-                      <Text fontSize={{ base: "xs", md: "sm" }} color="neutral.500" noOfLines={{ base: 2, md: 3 }}>
+                      <Text fontSize={{ base: "xs", md: "sm" }} color="text" opacity={0.6} noOfLines={{ base: 2, md: 3 }}>
                         {displayProperty.description}
                       </Text>
                     </VStack>
@@ -305,10 +305,10 @@ export function REITxPropertiesChakra() {
 
                     <Box w="full">
                       <HStack justify="space-between" mb={2}>
-                        <Text fontSize="sm" color="neutral.600">
+                        <Text fontSize="sm" color="text" opacity={0.7}>
                           Funding Progress
                         </Text>
-                        <Text fontSize="sm" fontWeight="bold">
+                        <Text fontSize="sm" fontWeight="bold" color="text">
                           {fundingProgress.percentage}%
                         </Text>
                       </HStack>
@@ -318,7 +318,7 @@ export function REITxPropertiesChakra() {
                         colorScheme="blue"
                         borderRadius="full"
                       />
-                      <Text fontSize="xs" color="neutral.500" mt={1}>
+                      <Text fontSize="xs" color="text" opacity={0.6} mt={1}>
                         {fundingProgress.raised.toLocaleString()} / {fundingProgress.target.toLocaleString()} tokens sold
                       </Text>
                     </Box>
@@ -365,7 +365,7 @@ export function REITxPropertiesChakra() {
                   ))}
                 </Grid>
 
-                <Text color="neutral.700">
+                <Text color="text" opacity={0.8}>
                   {selectedProperty.description}
                 </Text>
 
@@ -407,13 +407,13 @@ export function REITxPropertiesChakra() {
                   <Box p={4} bg="blue.50" _dark={{ bg: "blue.900" }} opacity={0.9} borderRadius="md">
                     <SimpleGrid columns={2} spacing={4}>
                       <VStack align="flex-start" spacing={1}>
-                        <Text fontSize="sm" color="neutral.600">Total Cost</Text>
-                        <Text fontSize="lg" fontWeight="bold">
+                        <Text fontSize="sm" color="text" opacity={0.7}>Total Cost</Text>
+                        <Text fontSize="lg" fontWeight="bold" color="text">
                           €{(Number(purchaseAmount) * Number(selectedProperty.pricePerToken)).toLocaleString()}
                         </Text>
                       </VStack>
                       <VStack align="flex-start" spacing={1}>
-                        <Text fontSize="sm" color="neutral.600">Expected Monthly Yield</Text>
+                        <Text fontSize="sm" color="text" opacity={0.7}>Expected Monthly Yield</Text>
                         <Text fontSize="lg" fontWeight="bold" color="green.600">
                           €{((Number(purchaseAmount) / Number(selectedProperty.totalSupply)) * 
                             Number(selectedProperty.monthlyRent)).toFixed(2)}

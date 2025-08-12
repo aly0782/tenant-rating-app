@@ -178,8 +178,8 @@ export function InvestorDashboard() {
     return (
       <Container maxW="container.xl" py={8}>
         <VStack spacing={6} mb={8}>
-          <Heading size="2xl" fontWeight="bold">Investor Dashboard</Heading>
-          <Text color="neutral.600" fontSize="lg">Track your REITx property investments and returns</Text>
+          <Heading size="2xl" fontWeight="bold" color="text">Investor Dashboard</Heading>
+          <Text color="text" opacity={0.7} fontSize="lg">Track your REITx property investments and returns</Text>
         </VStack>
 
         <Alert
@@ -208,8 +208,8 @@ export function InvestorDashboard() {
       <Container maxW="container.xl" py={8}>
         <Center h="60vh">
           <VStack spacing={6} textAlign="center">
-            <Heading size="lg" color="neutral.600">Connect Your TON Wallet</Heading>
-            <Text color="neutral.500" fontSize="lg">
+            <Heading size="lg" color="text" opacity={0.7}>Connect Your TON Wallet</Heading>
+            <Text color="text" opacity={0.6} fontSize="lg">
               Please connect your TON wallet to view your REITx property portfolio and returns.
             </Text>
           </VStack>
@@ -224,7 +224,7 @@ export function InvestorDashboard() {
         <Center h="60vh">
           <VStack spacing={4}>
             <Spinner size="xl" color="blue.500" thickness="3px" />
-            <Text color="neutral.600">Loading your portfolio...</Text>
+            <Text color="text" opacity={0.7}>Loading your portfolio...</Text>
           </VStack>
         </Center>
       </Container>
@@ -235,8 +235,8 @@ export function InvestorDashboard() {
     return (
       <Container maxW="container.xl" py={8}>
         <VStack spacing={6} mb={8}>
-          <Heading size="2xl" fontWeight="bold">Investor Dashboard</Heading>
-          <Text color="neutral.600" fontSize="lg">Track your REITx property investments and returns</Text>
+          <Heading size="2xl" fontWeight="bold" color="text">Investor Dashboard</Heading>
+          <Text color="text" opacity={0.7} fontSize="lg">Track your REITx property investments and returns</Text>
         </VStack>
 
         <Alert
@@ -272,9 +272,9 @@ export function InvestorDashboard() {
         <Card>
           <CardBody>
             <Stat>
-              <StatLabel>Total Invested</StatLabel>
+              <StatLabel color="text" opacity={0.8}>Total Invested</StatLabel>
               <StatNumber color="blue.600">€{portfolioStats.totalInvested.toLocaleString()}</StatNumber>
-              <StatHelpText>{portfolioStats.totalProperties} properties</StatHelpText>
+              <StatHelpText color="text" opacity={0.7}>{portfolioStats.totalProperties} properties</StatHelpText>
             </Stat>
           </CardBody>
         </Card>
@@ -282,9 +282,9 @@ export function InvestorDashboard() {
         <Card>
           <CardBody>
             <Stat>
-              <StatLabel>Current Value</StatLabel>
+              <StatLabel color="text" opacity={0.8}>Current Value</StatLabel>
               <StatNumber color="green.600">€{portfolioStats.currentValue.toLocaleString()}</StatNumber>
-              <StatHelpText>
+              <StatHelpText color="text" opacity={0.7}>
                 <StatArrow type={portfolioStats.portfolioReturn >= 0 ? 'increase' : 'decrease'} />
                 {Math.abs(portfolioStats.portfolioReturn).toFixed(2)}%
               </StatHelpText>
@@ -295,9 +295,9 @@ export function InvestorDashboard() {
         <Card>
           <CardBody>
             <Stat>
-              <StatLabel>Monthly Yield</StatLabel>
+              <StatLabel color="text" opacity={0.8}>Monthly Yield</StatLabel>
               <StatNumber color="purple.600">€{portfolioStats.monthlyYield.toFixed(2)}</StatNumber>
-              <StatHelpText>Expected monthly income</StatHelpText>
+              <StatHelpText color="text" opacity={0.7}>Expected monthly income</StatHelpText>
             </Stat>
           </CardBody>
         </Card>
@@ -305,9 +305,9 @@ export function InvestorDashboard() {
         <Card>
           <CardBody>
             <Stat>
-              <StatLabel>Total Returns</StatLabel>
+              <StatLabel color="text" opacity={0.8}>Total Returns</StatLabel>
               <StatNumber color="orange.600">€{portfolioStats.totalReturns.toFixed(2)}</StatNumber>
-              <StatHelpText>All-time earnings</StatHelpText>
+              <StatHelpText color="text" opacity={0.7}>All-time earnings</StatHelpText>
             </Stat>
           </CardBody>
         </Card>
@@ -315,7 +315,7 @@ export function InvestorDashboard() {
 
       {/* Property Holdings */}
       <Box mb={12}>
-        <Heading size="lg" mb={6}>Your Property Holdings</Heading>
+        <Heading size="lg" mb={6} color="text">Your Property Holdings</Heading>
         <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, 1fr)' }} gap={6}>
           {holdings.map((holding) => (
             <Card key={holding.id} overflow="hidden">
@@ -330,10 +330,10 @@ export function InvestorDashboard() {
                     borderRadius="md"
                   />
                   <VStack align="flex-start" spacing={1} flex={1}>
-                    <Heading size="md" lineHeight="short">
+                    <Heading size="md" lineHeight="short" color="text">
                       {holding.name}
                     </Heading>
-                    <Text color="neutral.600" fontSize="sm">
+                    <Text color="text" opacity={0.7} fontSize="sm">
                       {holding.location}
                     </Text>
                     <Badge colorScheme="blue" size="sm">
@@ -346,21 +346,21 @@ export function InvestorDashboard() {
               <CardBody>
                 <SimpleGrid columns={2} spacing={4} mb={4}>
                   <VStack align="flex-start" spacing={1}>
-                    <Text fontSize="xs" color="neutral.500" textTransform="uppercase">Tokens Owned</Text>
-                    <Text fontWeight="bold" fontSize="lg">{holding.tokensOwned.toLocaleString()}</Text>
+                    <Text fontSize="xs" color="text" opacity={0.6} textTransform="uppercase">Tokens Owned</Text>
+                    <Text fontWeight="bold" fontSize="lg" color="text">{holding.tokensOwned.toLocaleString()}</Text>
                   </VStack>
                   <VStack align="flex-start" spacing={1}>
-                    <Text fontSize="xs" color="neutral.500" textTransform="uppercase">Investment</Text>
-                    <Text fontWeight="bold" fontSize="lg">€{holding.totalInvested.toLocaleString()}</Text>
+                    <Text fontSize="xs" color="text" opacity={0.6} textTransform="uppercase">Investment</Text>
+                    <Text fontWeight="bold" fontSize="lg" color="text">€{holding.totalInvested.toLocaleString()}</Text>
                   </VStack>
                   <VStack align="flex-start" spacing={1}>
-                    <Text fontSize="xs" color="neutral.500" textTransform="uppercase">Current Value</Text>
+                    <Text fontSize="xs" color="text" opacity={0.6} textTransform="uppercase">Current Value</Text>
                     <Text fontWeight="bold" fontSize="lg" color="green.600">
                       €{holding.currentValue.toLocaleString()}
                     </Text>
                   </VStack>
                   <VStack align="flex-start" spacing={1}>
-                    <Text fontSize="xs" color="neutral.500" textTransform="uppercase">Monthly Yield</Text>
+                    <Text fontSize="xs" color="text" opacity={0.6} textTransform="uppercase">Monthly Yield</Text>
                     <Text fontWeight="bold" fontSize="lg" color="purple.600">
                       €{holding.monthlyYield.toFixed(2)}
                     </Text>
