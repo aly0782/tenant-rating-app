@@ -238,7 +238,7 @@ export function useREITxFactory(factoryAddress?: string) {
       const holders = await factory.getPropertyHolders(provider as any, propertyId);
       
       // Calculate percentages
-      return holders.map(holder => ({
+      return holders.map((holder: {address: Address, balance: bigint}) => ({
         address: holder.address.toString(),
         balance: holder.balance,
         percentage: soldTokens > 0n ? Number((holder.balance * 10000n) / soldTokens) / 100 : 0
