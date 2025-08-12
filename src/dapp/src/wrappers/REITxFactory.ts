@@ -257,6 +257,31 @@ export class REITxFactory implements Contract {
         // For now, returning empty array - in production, this would fetch from contract
         return [];
     }
+
+    async isAdminAddress(provider: ContractProvider, address: Address): Promise<number> {
+        try {
+            // Try multi-admin contract method first
+            const result = await provider.get('is_admin_address', [
+                { type: 'slice', cell: beginCell().storeAddress(address).endCell() }
+            ]);
+            return result.stack.readNumber();
+        } catch (error) {
+            // Fall back to basic contract - check if address matches admin
+            try {
+                const adminResult = await provider.get('get_admin_address', []);
+                const adminAddress = adminResult.stack.readAddress();
+                
+                // Check if the provided address matches the admin
+                if (adminAddress.equals(address)) {
+                    return 2; // Return 2 for admin (super admin in multi-admin context)
+                }
+                return 0; // Not admin
+            } catch (err) {
+                console.error('Failed to check admin status:', err);
+                return 0;
+            }
+        }
+    }
 }
 
 

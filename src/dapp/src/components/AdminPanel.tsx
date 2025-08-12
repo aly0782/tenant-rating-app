@@ -161,10 +161,12 @@ export function AdminPanel() {
     // Normalize the address to handle different formats
     const normalizeAddress = (addr: string): string => {
       try {
-        // Parse and convert to raw format for comparison
+        // Parse and convert to standardized format
         const parsed = Address.parse(addr);
-        return parsed.toRawString();
-      } catch {
+        // Use both raw and bounceable formats for comparison
+        return parsed.toString();
+      } catch (e) {
+        console.error('Failed to parse address:', addr, e);
         return addr;
       }
     };
@@ -172,35 +174,58 @@ export function AdminPanel() {
     const normalizedUserAddress = normalizeAddress(address);
     const normalizedSuperAdmin = normalizeAddress(contractConfig.superAdmin);
     
-    // Check against configured super admin first
-    if (normalizedUserAddress === normalizedSuperAdmin) {
+    console.log('Checking admin status:', {
+      userAddress: address,
+      normalizedUser: normalizedUserAddress,
+      superAdmin: contractConfig.superAdmin,
+      normalizedSuper: normalizedSuperAdmin
+    });
+    
+    // Check against configured super admin first (try multiple formats)
+    if (normalizedUserAddress === normalizedSuperAdmin || 
+        address === contractConfig.superAdmin ||
+        Address.parse(address).toRawString() === Address.parse(contractConfig.superAdmin).toRawString()) {
+      console.log('User is super admin');
       return 2; // Super admin
     }
     
     // Check against configured regular admins
     if (contractConfig.admins) {
       for (const admin of contractConfig.admins) {
-        if (normalizeAddress(admin) === normalizedUserAddress) {
-          return 1; // Regular admin
+        try {
+          if (normalizeAddress(admin) === normalizedUserAddress ||
+              address === admin ||
+              Address.parse(address).toRawString() === Address.parse(admin).toRawString()) {
+            console.log('User is regular admin');
+            return 1; // Regular admin
+          }
+        } catch (e) {
+          console.warn('Failed to compare admin address:', admin, e);
         }
       }
     }
     
-    // Also check the raw address format
-    if (address === contractConfig.superAdmin || contractConfig.admins?.includes(address)) {
-      return address === contractConfig.superAdmin ? 2 : 1;
+    console.log('User is not an admin');
+    
+    // Always prioritize checking from the contract directly
+    if (factory && client) {
+      try {
+        // Try to check admin status from the contract
+        const provider = (client as any).provider(factory.address);
+        const parsedAddress = Address.parse(address);
+        const adminStatus = await factory.isAdminAddress(provider, parsedAddress);
+        console.log('Contract admin check result:', adminStatus);
+        
+        // If contract says user is admin, trust that over config
+        if (adminStatus > 0) {
+          return adminStatus;
+        }
+      } catch (err) {
+        console.error('Failed to check admin status from contract:', err);
+        // Continue with config-based check as fallback
+      }
     }
     
-    console.log('Admin check failed:', {
-      userAddress: address,
-      normalizedUser: normalizedUserAddress,
-      superAdmin: contractConfig.superAdmin,
-      normalizedSuper: normalizedSuperAdmin,
-      admins: contractConfig.admins
-    });
-    
-    // In production, this would also call the contract's is_admin_address method
-    // to get the latest admin list from the blockchain
     return 0;
   };
 
@@ -354,22 +379,51 @@ export function AdminPanel() {
       }
       
       // Create property on blockchain with generated URI
-      await createProperty({
-        name: propertyForm.name,
-        location: propertyForm.location,
-        totalSupply: toNano(propertyForm.totalSupply),
-        pricePerToken: toNano(propertyForm.pricePerToken),
-        monthlyRent: toNano(propertyForm.monthlyRent || '0'),
-        uri: metadataUri,
-      });
-      
       toast({
-        title: 'Property Created',
-        description: `Successfully created property: ${propertyForm.name}`,
-        status: 'success',
-        duration: 5000,
+        title: 'Sending transaction...',
+        description: 'Please confirm the transaction in your wallet',
+        status: 'info',
+        duration: 3000,
         isClosable: true,
       });
+      
+      try {
+        await createProperty({
+          name: propertyForm.name,
+          location: propertyForm.location,
+          totalSupply: toNano(propertyForm.totalSupply),
+          pricePerToken: toNano(propertyForm.pricePerToken),
+          monthlyRent: toNano(propertyForm.monthlyRent || '0'),
+          uri: metadataUri,
+        });
+        
+        toast({
+          title: 'Property Created',
+          description: `Successfully created property: ${propertyForm.name}`,
+          status: 'success',
+          duration: 5000,
+          isClosable: true,
+        });
+      } catch (txError: any) {
+        console.error('Transaction error details:', txError);
+        
+        // Check if it's a user rejection
+        if (txError?.message?.includes('User rejected') || txError?.message?.includes('Rejected')) {
+          throw new Error('Transaction was rejected by user');
+        }
+        
+        // Check for specific contract errors
+        if (txError?.message?.includes('401') || txError?.message?.includes('not authorized')) {
+          throw new Error('Not authorized as admin. Please check your wallet address.');
+        }
+        
+        if (txError?.message?.includes('403') || txError?.message?.includes('paused')) {
+          throw new Error('Contract is paused. Please unpause first.');
+        }
+        
+        // Re-throw with more context
+        throw new Error(`Transaction failed: ${txError?.message || 'Unknown error'}`);
+      }
       
       // Reset form
       setPropertyForm({

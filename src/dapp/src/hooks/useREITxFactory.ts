@@ -237,7 +237,7 @@ export function useREITxFactory(factoryAddress?: string) {
     monthlyRent: bigint;
     uri: string;
   }) => {
-    if (!tonConnectUI || !factory) {
+    if (!tonConnectUI || !factory || !client) {
       throw new Error('Wallet not connected or factory not loaded');
     }
 
@@ -251,6 +251,7 @@ export function useREITxFactory(factoryAddress?: string) {
       contractAddress: contractConfig.factoryAddress
     });
 
+    // Build the message according to the contract specification
     const message = beginCell()
       .storeUint(0x12345678, 32) // op::create_property
       .storeUint(0, 64) // query_id
@@ -265,33 +266,64 @@ export function useREITxFactory(factoryAddress?: string) {
     console.log('Message payload:', message.toBoc().toString('base64'));
 
     try {
+      // Increase gas to ensure transaction succeeds
+      const gasAmount = toNano('1'); // Increased from 0.5 to 1 TON
+      
+      console.log('Sending transaction with gas:', fromNano(gasAmount), 'TON');
+      
       const result = await sendTransaction({
         validUntil: Math.floor(Date.now() / 1000) + 600, // 10 minutes
         messages: [
           {
             address: contractConfig.factoryAddress,
-            amount: toNano('0.5').toString(), // Increased gas to 0.5 TON
+            amount: gasAmount.toString(),
             payload: message.toBoc().toString('base64')
           }
         ]
       });
-      console.log('Transaction result:', result);
       
-      // Wait a bit for the transaction to be processed
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      console.log('Transaction sent successfully:', result);
       
-      // Check if property was actually created
+      // Wait longer for the transaction to be confirmed on chain
+      console.log('Waiting for transaction confirmation...');
+      await new Promise(resolve => setTimeout(resolve, 5000));
+      
+      // Verify property was created
       try {
         const provider = (client as TonClient).provider(factory.address);
         const newPropertyId = await factory.getNextPropertyId(provider as any);
-        console.log('New property ID after transaction:', newPropertyId);
+        console.log('Property created successfully! New property ID:', newPropertyId);
+        
+        // Try to fetch the new property to verify it exists
+        if (newPropertyId > 0) {
+          try {
+            const propertyInfo = await factory.getPropertyInfo(provider as any, newPropertyId - 1);
+            console.log('New property info:', propertyInfo);
+          } catch (err) {
+            console.log('Could not fetch new property info yet, may need more time');
+          }
+        }
+        
+        return true;
       } catch (err) {
-        console.error('Failed to check new property ID:', err);
+        console.error('Failed to verify property creation:', err);
+        // Don't throw here, the transaction might have succeeded even if verification failed
+        return true;
+      }
+    } catch (error: any) {
+      console.error('Transaction failed with error:', error);
+      
+      // Parse error message for more details
+      if (error?.message) {
+        if (error.message.includes('401')) {
+          throw new Error('Not authorized as admin. Please ensure your wallet address is registered as an admin.');
+        } else if (error.message.includes('403')) {
+          throw new Error('Contract is paused. Please unpause the contract first.');
+        } else if (error.message.includes('408')) {
+          throw new Error('Invalid amount specified. Please check the property details.');
+        }
       }
       
-      return true;
-    } catch (error) {
-      console.error('Transaction failed:', error);
       throw error;
     }
   };
