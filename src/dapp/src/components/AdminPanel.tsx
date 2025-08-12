@@ -890,7 +890,7 @@ export function AdminPanel() {
                             alignItems="flex-start"
                           >
                             <Text fontWeight="bold" fontSize="sm">{property.name}</Text>
-                            <Text fontSize="xs" color="gray.600">
+                            <Text fontSize="xs" color="text" opacity={0.7}>
                               {property.totalSupply - property.availableTokens} tokens sold
                             </Text>
                           </Button>
@@ -914,7 +914,7 @@ export function AdminPanel() {
                     <CardBody>
                       <VStack spacing={4} align="stretch">
                         {/* USDC Distribution Controls */}
-                        <Box borderWidth={1} borderRadius="md" p={4} bg="gray.50">
+                        <Box borderWidth={1} borderRadius="md" p={4} bg="hover">
                           <VStack spacing={3} align="stretch">
                             <Text fontWeight="bold">Distribute USDC Dividends</Text>
                             <HStack>
@@ -938,7 +938,7 @@ export function AdminPanel() {
                               </Button>
                             </HStack>
                             {totalUsdcToDistribute && parseFloat(totalUsdcToDistribute) > 0 && (
-                              <Text fontSize="sm" color="gray.600">
+                              <Text fontSize="sm" color="text" opacity={0.7}>
                                 Each holder will receive USDC proportional to their token ownership
                               </Text>
                             )}
@@ -1089,12 +1089,12 @@ export function AdminPanel() {
                         <HStack justify="space-between">
                           <VStack align="start" spacing={1}>
                             <Heading size="sm">{property.name}</Heading>
-                            <Text fontSize="sm" color="gray.600">
+                            <Text fontSize="sm" color="text" opacity={0.7}>
                               Tokens Sold: {property.totalSupply - property.availableTokens} / {property.totalSupply}
                             </Text>
                           </VStack>
                           <VStack align="end" spacing={1}>
-                            <Text fontSize="sm" color="gray.600">Monthly Rent</Text>
+                            <Text fontSize="sm" color="text" opacity={0.7}>Monthly Rent</Text>
                             <Text fontWeight="bold">{property.monthlyRent} TON</Text>
                           </VStack>
                         </HStack>
@@ -1242,7 +1242,7 @@ export function AdminPanel() {
                   
                   {imagePreviewUrls.length > 0 && (
                     <Box>
-                      <Text fontSize="sm" color="gray.600" mb={2}>
+                      <Text fontSize="sm" color="text" opacity={0.7} mb={2}>
                         {propertyForm.imageFiles.length} image(s) selected
                       </Text>
                       <HStack spacing={2} overflowX="auto" py={2}>

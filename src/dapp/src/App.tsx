@@ -146,7 +146,7 @@ function App() {
   return (
     <ChakraProvider theme={modernTheme}>
       <NetworkBadge />
-      <Box bg="neutral.50" minH="100vh">
+      <Box bg="bg" color="text" minH="100vh">
         {/* Navigation Header */}
         <Box
           as="nav"
@@ -180,7 +180,7 @@ function App() {
                     size="sm" 
                     fontWeight="medium"
                     onClick={navigateHome}
-                    bg={!isWhitepaperRoute && !isRiskDisclosureRoute && !isDashboardRoute && !pathParams?.wrapper ? "gray.100" : "transparent"}
+                    bg={!isWhitepaperRoute && !isRiskDisclosureRoute && !isDashboardRoute && !pathParams?.wrapper ? "hover" : "transparent"}
                   >
                     Home
                   </Button>
@@ -212,7 +212,7 @@ function App() {
                     size="sm" 
                     fontWeight="medium"
                     onClick={() => navigateTo('dashboard')}
-                    bg={isDashboardRoute ? "gray.100" : "transparent"}
+                    bg={isDashboardRoute ? "hover" : "transparent"}
                   >
                     Dashboard
                   </Button>
@@ -221,7 +221,7 @@ function App() {
                     size="sm" 
                     fontWeight="medium" 
                     onClick={() => navigateTo('whitepaper')}
-                    bg={isWhitepaperRoute ? "gray.100" : "transparent"}
+                    bg={isWhitepaperRoute ? "hover" : "transparent"}
                   >
                     Whitepaper
                   </Button>
@@ -230,7 +230,7 @@ function App() {
                     size="sm" 
                     fontWeight="medium" 
                     onClick={() => navigateTo('risk-disclosure')}
-                    bg={isRiskDisclosureRoute ? "gray.100" : "transparent"}
+                    bg={isRiskDisclosureRoute ? "hover" : "transparent"}
                   >
                     Risk Disclosure
                   </Button>
@@ -239,7 +239,7 @@ function App() {
                     size="sm" 
                     fontWeight="medium" 
                     onClick={() => navigateTo('legal')}
-                    bg={isLegalRoute ? "gray.100" : "transparent"}
+                    bg={isLegalRoute ? "hover" : "transparent"}
                   >
                     Legal
                   </Button>
@@ -248,7 +248,7 @@ function App() {
                     size="sm" 
                     fontWeight="medium" 
                     onClick={() => navigateTo('contract')}
-                    bg={isContractRoute ? "gray.100" : "transparent"}
+                    bg={isContractRoute ? "hover" : "transparent"}
                   >
                     Contract
                   </Button>
@@ -257,7 +257,7 @@ function App() {
                     size="sm" 
                     fontWeight="medium" 
                     onClick={() => navigateTo('admin')}
-                    bg={isAdminRoute ? "gray.100" : "transparent"}
+                    bg={isAdminRoute ? "hover" : "transparent"}
                   >
                     Admin
                   </Button>
@@ -340,7 +340,7 @@ function App() {
         )}
 
         {/* Main Content */}
-        <Container maxW="container.xl" py={{ base: 8, md: 16 }}>
+        <Container maxW="container.xl" py={{ base: 8, md: 16 }} bg="transparent">
           {isWhitepaperRoute ? (
             <Whitepaper />
           ) : isRiskDisclosureRoute ? (
@@ -377,9 +377,9 @@ function App() {
                 <GridItem>
                   <VStack
                     p={8}
-                    bg="white"
+                    bg="card"
                     border="1px solid"
-                    borderColor="neutral.200"
+                    borderColor="border"
                     align="flex-start"
                     spacing={4}
                     h="full"
@@ -388,7 +388,7 @@ function App() {
                   >
                     <Box w={12} h={12} bg="blue.600" borderRadius="md" />
                     <Heading size="md">Fractional Ownership</Heading>
-                    <Text color="neutral.600">
+                    <Text color="text" opacity={0.8}>
                       Own a piece of premium Lisbon real estate with as little as 100 TON. 
                       Diversify your portfolio across multiple tokenized properties.
                     </Text>
@@ -397,9 +397,9 @@ function App() {
                 <GridItem>
                   <VStack
                     p={8}
-                    bg="white"
+                    bg="card"
                     border="1px solid"
-                    borderColor="neutral.200"
+                    borderColor="border"
                     align="flex-start"
                     spacing={4}
                     h="full"
@@ -408,7 +408,7 @@ function App() {
                   >
                     <Box w={12} h={12} bg="green.600" borderRadius="md" />
                     <Heading size="md">Monthly TON Yields</Heading>
-                    <Text color="neutral.600">
+                    <Text color="text" opacity={0.8}>
                       Earn passive income from rental payments and revenue sharing, 
                       paid monthly in TON directly to your wallet.
                     </Text>
@@ -417,9 +417,9 @@ function App() {
                 <GridItem>
                   <VStack
                     p={8}
-                    bg="white"
+                    bg="card"
                     border="1px solid"
-                    borderColor="neutral.200"
+                    borderColor="border"
                     align="flex-start"
                     spacing={4}
                     h="full"
@@ -428,7 +428,7 @@ function App() {
                   >
                     <Box w={12} h={12} bg="purple.600" borderRadius="md" />
                     <Heading size="md">Blockchain Transparency</Heading>
-                    <Text color="neutral.600">
+                    <Text color="text" opacity={0.8}>
                       Track ownership, rental income, and property performance in real-time. 
                       All transactions secured on the TON blockchain.
                     </Text>

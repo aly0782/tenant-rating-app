@@ -222,47 +222,50 @@ const components = {
     }),
   },
   Input: {
-    baseStyle: {
+    baseStyle: ({ colorMode }: { colorMode: string }) => ({
       field: {
         borderRadius: "none",
-        borderColor: "neutral.300",
+        borderColor: colorMode === 'dark' ? 'gray.600' : 'neutral.300',
+        bg: colorMode === 'dark' ? 'gray.700' : 'white',
         _hover: {
-          borderColor: "neutral.400",
+          borderColor: colorMode === 'dark' ? 'gray.500' : 'neutral.400',
         },
         _focus: {
           borderColor: "accent.primary",
           boxShadow: "0 0 0 1px var(--chakra-colors-accent-primary)",
         },
       },
-    },
+    }),
   },
   Select: {
-    baseStyle: {
+    baseStyle: ({ colorMode }: { colorMode: string }) => ({
       field: {
         borderRadius: "none",
-        borderColor: "neutral.300",
+        borderColor: colorMode === 'dark' ? 'gray.600' : 'neutral.300',
+        bg: colorMode === 'dark' ? 'gray.700' : 'white',
         _hover: {
-          borderColor: "neutral.400",
+          borderColor: colorMode === 'dark' ? 'gray.500' : 'neutral.400',
         },
         _focus: {
           borderColor: "accent.primary",
           boxShadow: "0 0 0 1px var(--chakra-colors-accent-primary)",
         },
       },
-    },
+    }),
   },
   Textarea: {
-    baseStyle: {
+    baseStyle: ({ colorMode }: { colorMode: string }) => ({
       borderRadius: "none",
-      borderColor: "neutral.300",
+      borderColor: colorMode === 'dark' ? 'gray.600' : 'neutral.300',
+      bg: colorMode === 'dark' ? 'gray.700' : 'white',
       _hover: {
-        borderColor: "neutral.400",
+        borderColor: colorMode === 'dark' ? 'gray.500' : 'neutral.400',
       },
       _focus: {
         borderColor: "accent.primary",
         boxShadow: "0 0 0 1px var(--chakra-colors-accent-primary)",
       },
-    },
+    }),
   },
   Heading: {
     baseStyle: {
@@ -301,8 +304,8 @@ const semanticTokens = {
       _dark: "gray.100",
     },
     bg: {
-      default: "white",
-      _dark: "gray.800",
+      default: "neutral.50",
+      _dark: "gray.900",
     },
     border: {
       default: "gray.200",
@@ -314,6 +317,14 @@ const semanticTokens = {
     },
     hover: {
       default: "gray.50",
+      _dark: "gray.700",
+    },
+    panel: {
+      default: "white",
+      _dark: "gray.800",
+    },
+    input: {
+      default: "white",
       _dark: "gray.700",
     },
   },

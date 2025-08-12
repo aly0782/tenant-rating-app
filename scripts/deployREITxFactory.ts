@@ -19,17 +19,17 @@ export async function run(provider: NetworkProvider) {
     console.log('🔨 Compiling contract...');
     const code = await compile('REITxFactory');
 
-    // Create initial config
-    const config = {
-        adminAddress: deployerAddress,
-        nextPropertyId: 0,
-        properties: Dictionary.empty<number, Cell>(),
-        userBalances: Dictionary.empty<number, Cell>(),
-        paused: false
-    };
-
-    // Create the contract instance
-    const reitxFactory = REITxFactory.createFromConfig(config, code);
+    // For minimal contract, we use simple config
+    const reitxFactory = REITxFactory.createFromConfig(
+        { 
+            adminAddress: deployerAddress, 
+            nextPropertyId: 0,
+            properties: Dictionary.empty<number, Cell>(),
+            userBalances: Dictionary.empty<number, Cell>(),
+            paused: false
+        }, 
+        code
+    );
     
     console.log('📄 Contract address will be:', reitxFactory.address.toString());
     
