@@ -1,9 +1,36 @@
 {
-  "buildCommand": "yarn --cwd src/dapp install --inline-builds && yarn --cwd src/dapp build",
-  "framework": null,
+  "buildCommand": "yarn vercel-build",
   "outputDirectory": "src/dapp/dist",
-  "cleanUrls": true,
-  "trailingSlash": false
+  "installCommand": "yarn install",
+  "framework": null,
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/tonconnect-manifest.json",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "X-Requested-With, Content-Type, Authorization"
+        }
+      ]
+    }
+  ],
+  "env": {
+    "VITE_PUBLIC_URL": "https://reitx.xyz",
+    "VITE_REACT_APP_TITLE": "REITx",
+    "VITE_TON_NETWORK": "testnet"
+  }
 }
-
-
