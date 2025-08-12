@@ -1,7 +1,7 @@
 {
-  "url": "https://reitx.com",
+  "url": "http://localhost:5173",
   "name": "REITx",
-  "iconUrl": "https://reitx.com/logo.png",
-  "termsOfUseUrl": "https://reitx.com/terms-of-use.txt",
-  "privacyPolicyUrl": "https://reitx.com/privacy-policy.txt"
+  "iconUrl": "http://localhost:5173/logo-180.png",
+  "termsOfUseUrl": "http://localhost:5173/terms-of-use.txt",
+  "privacyPolicyUrl": "http://localhost:5173/privacy-policy.txt"
 }

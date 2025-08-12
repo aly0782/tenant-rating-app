@@ -3,6 +3,7 @@ import { Address, fromNano, toNano } from '@ton/core';
 import { useTonClient } from './useTonClient';
 import { useTonConnect } from './useTonConnect';
 import { REITxFactory, PropertyInfo } from '../../../../wrappers/REITxFactory';
+import { TonClient } from '@ton/ton';
 
 interface PropertyHolding {
   propertyId: number;
@@ -29,9 +30,9 @@ export function useREITxFactory(factoryAddress?: string) {
     }
 
     try {
-      // Use placeholder address for now - in production this would come from config or deployment
-      const address = factoryAddress || 'EQDREITxContractAddressPlaceholder';
-      if (address === 'EQDREITxContractAddressPlaceholder') {
+      // Use test contract address - replace with your deployed contract address
+      const address = factoryAddress || 'EQBvW5S6UqG5w7gK7eHH_JOuWJB9G3jDq5pR8QZtPbGlCxZ0'; // Testnet placeholder
+      if (!address || address === 'EQDREITxContractAddressPlaceholder') {
         setError('Contract not deployed yet. Please deploy the REITx Factory contract first.');
         setIsLoading(false);
         return;
@@ -50,12 +51,13 @@ export function useREITxFactory(factoryAddress?: string) {
     if (!factory || !client) return [];
     
     try {
-      const nextPropertyId = await factory.getNextPropertyId(client);
+      const provider = (client as TonClient).provider(factory.address);
+      const nextPropertyId = await factory.getNextPropertyId(provider as any);
       const properties: PropertyInfo[] = [];
       
       for (let i = 0; i < nextPropertyId; i++) {
         try {
-          const propertyInfo = await factory.getPropertyInfo(client, i);
+          const propertyInfo = await factory.getPropertyInfo(provider as any, i);
           properties.push({ ...propertyInfo, id: i } as PropertyInfo & { id: number });
         } catch (err) {
           // Property might not exist, skip it
@@ -74,16 +76,17 @@ export function useREITxFactory(factoryAddress?: string) {
     if (!factory || !client || !userAddress) return [];
     
     try {
-      const nextPropertyId = await factory.getNextPropertyId(client);
+      const provider = (client as TonClient).provider(factory.address);
+      const nextPropertyId = await factory.getNextPropertyId(provider as any);
       const holdings: PropertyHolding[] = [];
       const userAddr = Address.parse(userAddress);
       
       for (let i = 0; i < nextPropertyId; i++) {
         try {
-          const userBalance = await factory.getUserBalance(client, i, userAddr);
+          const userBalance = await factory.getUserBalance(provider as any, i, userAddr);
           
           if (userBalance > 0n) {
-            const propertyInfo = await factory.getPropertyInfo(client, i);
+            const propertyInfo = await factory.getPropertyInfo(provider as any, i);
             const soldTokens = propertyInfo.totalSupply - propertyInfo.availableTokens;
             const ownershipPercentage = soldTokens > 0n ? 
               Number(userBalance * 10000n / soldTokens) / 100 : 0;

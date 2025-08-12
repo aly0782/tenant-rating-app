@@ -242,7 +242,6 @@ export function REITxPropertiesChakra() {
                 description: "Nestled in Lisbon's energetic Anjos neighborhood, Patuá is a fully operational restaurant serving rare and authentic Macanese cuisine, a beautiful blend of Portuguese and Asian influences. This property is FUNDED and operational, currently generating €2,000 monthly returns. All tokens available for new investors.",
               } : property;
               
-              return displayProperty;
               const fundingProgress = calculateFundingProgress(displayProperty);
               const apy = calculateAPY(displayProperty);
 

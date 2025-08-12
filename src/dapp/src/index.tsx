@@ -11,7 +11,7 @@ import "./patch-local-storage-for-github-pages";
 
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
 root.render(
-  <TonConnectUIProvider manifestUrl="/tonconnect-manifest.json">
+  <TonConnectUIProvider manifestUrl="http://localhost:5173/tonconnect-manifest.json">
     <App />
   </TonConnectUIProvider>
 );

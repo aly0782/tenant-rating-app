@@ -8,7 +8,6 @@ export function useTonConnect() {
   useEffect(() => {
     // Set up TonConnect UI options for better wallet compatibility
     tonConnectUI.uiOptions = {
-      twaReturnUrl: 'https://t.me/REITxBot',
       language: 'en',
     };
 
