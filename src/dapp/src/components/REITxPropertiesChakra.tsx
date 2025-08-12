@@ -54,20 +54,20 @@ interface Property {
 const properties: Property[] = [
   {
     id: 0,
-    name: 'Patuá — Lisbon Restaurant',
-    location: 'Anjos, Lisbon, Portugal',
-    totalSupply: '2000', // 2000 tokens at €50 each = €100,000 total
-    pricePerToken: '50', // €50 per token
-    monthlyRent: '2000', // €2,000 monthly return for investors
+    name: 'Test Property - 1M Tokens',
+    location: 'Testnet Demo Property',
+    totalSupply: '1000000', // 1,000,000 tokens for testing
+    pricePerToken: '0.005', // 0.005 TON per token (very affordable for testing)
+    monthlyRent: '50', // 50 TON monthly return
     active: true,
-    uri: 'https://REITx.ton/properties/patua',
-    availableTokens: '2000', // All tokens available - connect to actual contract for real data
+    uri: 'https://reitx.xyz/property/test',
+    availableTokens: '1000000', // All tokens available
     images: [
       '/patua-pictures/IMG_4722.jpg',
       '/patua-pictures/IMG_4724.jpg',
       '/patua-pictures/IMG_4920.jpg',
     ],
-    description: "Nestled in Lisbon's energetic Anjos neighborhood, Patuá is a fully operational restaurant serving rare and authentic Macanese cuisine, a beautiful blend of Portuguese and Asian influences. This property is FUNDED and operational, currently generating €2,000 monthly returns. Additional tokens available for new investors.",
+    description: "TEST PROPERTY: This is a demonstration property with 1 million tokens at 0.005 TON each for testing the REITx platform. Perfect for testing small purchases and understanding the investment flow. Total value: 5,000 TON.",
   },
   // {
   //   id: 1,
