@@ -31,7 +31,7 @@ export function useREITxFactory(factoryAddress?: string) {
 
     try {
       // Use test contract address - replace with your deployed contract address
-      const address = factoryAddress || 'EQBvW5S6UqG5w7gK7eHH_JOuWJB9G3jDq5pR8QZtPbGlCxZ0'; // Testnet placeholder
+      const address = factoryAddress || 'EQB-OAFqUknskjjg0sTw7Jb8ubjxipwsLZBPiUxkHzEY1LPL'; // Testnet placeholder
       if (!address || address === 'EQDREITxContractAddressPlaceholder') {
         setError('Contract not deployed yet. Please deploy the REITx Factory contract first.');
         setIsLoading(false);

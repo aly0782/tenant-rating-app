@@ -7,7 +7,7 @@ export const PRODUCTION_CONFIG = {
   
   // Contract addresses (update after deployment)
   contracts: {
-    reitxFactory: 'EQBvW5S6UqG5w7gK7eHH_JOuWJB9G3jDq5pR8QZtPbGlCxZ0', // Replace with deployed address
+    reitxFactory: 'EQB-OAFqUknskjjg0sTw7Jb8ubjxipwsLZBPiUxkHzEY1LPL', // Replace with deployed address
   },
   
   // TON Connect configuration
