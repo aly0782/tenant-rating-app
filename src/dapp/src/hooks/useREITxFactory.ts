@@ -49,6 +49,48 @@ export function useREITxFactory(factoryAddress?: string) {
     setIsLoading(false);
   }, [client, factoryAddress]);
 
+  // Mock properties for testing when contract is not ready
+  const getMockProperties = (): PropertyInfo[] => {
+    return [
+      {
+        id: 0,
+        name: 'Luxury Patuá Apartment',
+        location: 'Patuá, Lisbon',
+        totalSupply: toNano('1000000'),
+        pricePerToken: toNano('0.005'),
+        monthlyRent: toNano('50'),
+        active: true,
+        uri: 'https://gateway.pinata.cloud/ipfs/QmVkzko97VTRhWdDCLA24AWPtoj6tbi8Ssa2QyoVbZM4pD',
+        availableTokens: toNano('900000'),
+        images: ['/patua-pictures/patua1.jpg', '/patua-pictures/patua2.jpg']
+      } as any,
+      {
+        id: 1,
+        name: 'Four Seasons Residence',
+        location: 'Rua Castilho, Lisbon',
+        totalSupply: toNano('2000000'),
+        pricePerToken: toNano('0.01'),
+        monthlyRent: toNano('100'),
+        active: true,
+        uri: 'https://demo.reitx.com/four-seasons',
+        availableTokens: toNano('1500000'),
+        images: ['/four-seasons-pictures/fs1.jpg', '/four-seasons-pictures/fs2.jpg']
+      } as any,
+      {
+        id: 2,
+        name: 'Barbadinhos Premium',
+        location: 'Rua Barbadinhos, Porto',
+        totalSupply: toNano('500000'),
+        pricePerToken: toNano('0.002'),
+        monthlyRent: toNano('25'),
+        active: true,
+        uri: 'https://demo.reitx.com/barbadinhos',
+        availableTokens: toNano('450000'),
+        images: ['/rua-barbadinhos-pictures/rb1.jpg', '/rua-barbadinhos-pictures/rb2.jpg']
+      } as any
+    ];
+  };
+
   const getAllProperties = async (): Promise<PropertyInfo[]> => {
     if (!factory || !client) return [];
     
@@ -63,7 +105,8 @@ export function useREITxFactory(factoryAddress?: string) {
         nextPropertyId = await factory.getNextPropertyId(provider as any);
       } catch (err: any) {
         console.error('Could not get next property ID:', err.message);
-        return [];
+        // Return mock properties for demo when contract is not working
+        return getMockProperties();
       }
       
       const properties: PropertyInfo[] = [];
