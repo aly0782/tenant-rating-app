@@ -217,7 +217,7 @@ export function REITxPropertiesChakra() {
         </VStack>
 
         {error && (
-          <Box bg="red.500" bgOpacity={0.1} p={4} borderRadius="md" mb={8}>
+          <Box bg="red.50" _dark={{ bg: "red.900" }} opacity={0.9} p={4} borderRadius="md" mb={8}>
             <Text color="red.600">Contract Error: {error}</Text>
             <Text fontSize="sm" color="red.500" mt={2}>
               Using mock data for demonstration. Deploy the REITx Factory contract to see live data.
@@ -404,7 +404,7 @@ export function REITxPropertiesChakra() {
                     />
                   </FormControl>
 
-                  <Box p={4} bg="blue.500" bgOpacity={0.1} borderRadius="md">
+                  <Box p={4} bg="blue.50" _dark={{ bg: "blue.900" }} opacity={0.9} borderRadius="md">
                     <SimpleGrid columns={2} spacing={4}>
                       <VStack align="flex-start" spacing={1}>
                         <Text fontSize="sm" color="neutral.600">Total Cost</Text>
