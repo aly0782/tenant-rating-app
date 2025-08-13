@@ -288,23 +288,47 @@ export function useREITxFactory(factoryAddress?: string) {
       console.log('Waiting for transaction confirmation...');
       await new Promise(resolve => setTimeout(resolve, 5000));
       
-      // Verify property was created
-      try {
-        const provider = (client as TonClient).provider(factory.address);
-        const newPropertyId = await factory.getNextPropertyId(provider as any);
-        console.log('Property created successfully! New property ID:', newPropertyId);
-        
-        // Try to fetch the new property to verify it exists
-        if (newPropertyId > 0) {
-          try {
-            const propertyInfo = await factory.getPropertyInfo(provider as any, newPropertyId - 1);
-            console.log('New property info:', propertyInfo);
-          } catch (err) {
-            console.log('Could not fetch new property info yet, may need more time');
+      // Verify property was created with retries
+      let propertyCreated = false;
+      let attempts = 0;
+      const maxAttempts = 5;
+      
+      while (!propertyCreated && attempts < maxAttempts) {
+        attempts++;
+        try {
+          const provider = (client as TonClient).provider(factory.address);
+          const newPropertyId = await factory.getNextPropertyId(provider as any);
+          console.log(`Attempt ${attempts}: Next property ID:`, newPropertyId);
+          
+          if (newPropertyId > 0) {
+            propertyCreated = true;
+            console.log('✅ Property created successfully! New property ID:', newPropertyId);
+            
+            // Try to fetch the new property to verify it exists
+            try {
+              const propertyInfo = await factory.getPropertyInfo(provider as any, newPropertyId - 1);
+              console.log('New property info:', propertyInfo);
+            } catch (err) {
+              console.log('Could not fetch property info yet');
+            }
+            
+            return true;
           }
+        } catch (err) {
+          console.log(`Attempt ${attempts} failed:`, err);
         }
         
-        return true;
+        if (!propertyCreated && attempts < maxAttempts) {
+          await new Promise(resolve => setTimeout(resolve, 3000));
+        }
+      }
+      
+      if (!propertyCreated) {
+        console.warn('⚠️ Transaction sent but property not created. Contract may have rejected it.');
+        throw new Error('Property creation failed. Please check if you are an admin and the contract is not paused.');
+      }
+      
+      return true;
       } catch (err) {
         console.error('Failed to verify property creation:', err);
         // Don't throw here, the transaction might have succeeded even if verification failed

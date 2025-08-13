@@ -390,7 +390,7 @@ export function AdminPanel() {
       });
       
       try {
-        await createProperty({
+        const success = await createProperty({
           name: propertyForm.name,
           location: propertyForm.location,
           totalSupply: toNano(propertyForm.totalSupply),
@@ -399,13 +399,43 @@ export function AdminPanel() {
           uri: metadataUri,
         });
         
-        toast({
-          title: 'Property Created',
-          description: `Successfully created property: ${propertyForm.name}`,
-          status: 'success',
-          duration: 5000,
-          isClosable: true,
-        });
+        if (success) {
+          toast({
+            title: 'Property Created',
+            description: `Successfully created property: ${propertyForm.name}`,
+            status: 'success',
+            duration: 5000,
+            isClosable: true,
+          });
+          
+          // Reset form and reload properties
+          setPropertyForm({
+            name: '',
+            location: '',
+            totalSupply: '',
+            pricePerToken: '',
+            monthlyRent: '',
+            uri: '',
+            description: '',
+            images: [],
+            propertyType: '',
+            yearBuilt: '',
+            squareFootage: '',
+            bedrooms: '',
+            bathrooms: '',
+            amenities: '',
+            imageFiles: []
+          });
+          setImagePreviewUrls([]);
+          
+          // Close modal and reload data
+          onClose();
+          
+          // Reload properties after a delay
+          setTimeout(async () => {
+            await loadAdminData();
+          }, 2000);
+        }
       } catch (txError: any) {
         console.error('Transaction error details:', txError);
         
@@ -416,11 +446,15 @@ export function AdminPanel() {
         
         // Check for specific contract errors
         if (txError?.message?.includes('401') || txError?.message?.includes('not authorized')) {
-          throw new Error('Not authorized as admin. Please check your wallet address.');
+          throw new Error('Not authorized as admin. Please ensure your wallet is connected with the correct admin address.');
         }
         
         if (txError?.message?.includes('403') || txError?.message?.includes('paused')) {
           throw new Error('Contract is paused. Please unpause first.');
+        }
+        
+        if (txError?.message?.includes('creation failed')) {
+          throw new Error('Property creation failed. The contract rejected the transaction. Please verify you are using the correct admin wallet.');
         }
         
         // Re-throw with more context
