@@ -329,11 +329,6 @@ export function useREITxFactory(factoryAddress?: string) {
       }
       
       return true;
-      } catch (err) {
-        console.error('Failed to verify property creation:', err);
-        // Don't throw here, the transaction might have succeeded even if verification failed
-        return true;
-      }
     } catch (error: any) {
       console.error('Transaction failed with error:', error);
       
