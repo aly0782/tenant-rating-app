@@ -45,8 +45,27 @@ app.use('/api/auth', authRoutes);
 app.use('/api/properties', propertiesRoutes);
 app.use('/api/reviews', reviewsRoutes);
 
-app.get('/api/me', verifyJWT, (req, res) => {
-  res.json(req.user);
+app.get('/api/me', verifyJWT, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT id, name, email, user_type, city, avg_rating, review_count, avatar_url,
+              bio, years_active, rentals_count, response_time_hours, created_at
+       FROM users WHERE id = $1`,
+      [req.user.id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.json(result.rows[0]);
+  } catch (err) {
+    if (err.code === '42703') {
+      return res.status(500).json({
+        error: 'Profile columns missing. Run migration 004-profile-fields.sql',
+      });
+    }
+    console.error('GET /api/me error:', err);
+    res.status(500).json({ error: err.message });
+  }
 });
 app.get('/api/users/me/pending-reviews', verifyJWT, getPendingReviewsForUser);
 
