@@ -7,12 +7,11 @@ import PersonGrid from '../components/PersonGrid';
 const API = 'https://tenant-rating-app.onrender.com';
 
 /**
- * TrustNest search page: Hero + SearchBar + FilterButtons + PersonGrid.
- * GET /api/users/search?city={query}&user_type=...
+ * TrustNest search page – matches v0: hero, search by name or location, filters, Browse All + results.
  */
 export default function SearchPeople() {
   const [city, setCity] = useState('');
-  const [filter, setFilter] = useState(''); // '', 'landlord', 'tenant'
+  const [filter, setFilter] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
@@ -34,32 +33,33 @@ export default function SearchPeople() {
   };
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#F8F9FA' }}>
-      <HeroSection
-        heading="Find & rate landlords and tenants"
-        subheading="Search by city and read verified reviews from people who rented together."
-      />
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#FAFBFC' }}>
+      <HeroSection />
 
       <div className="max-w-4xl mx-auto px-4 -mt-6 relative z-10 space-y-6">
         <SearchBar
           value={city}
           onChange={setCity}
           onSubmit={handleSearch}
-          placeholder="Enter city (e.g. Lisbon, Porto)"
+          placeholder="Search by name or location"
           loading={loading}
         />
         <FilterButtons value={filter} onChange={setFilter} />
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 py-10">
+      <div className="max-w-6xl mx-auto px-4 py-10 flex-1">
         {!searched && !loading ? (
-          <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center text-gray-500">
-            Enter a city above and click Search to find landlords and tenants.
+          <div className="flex flex-col items-center justify-center py-16">
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Browse All</h2>
+            <p className="text-gray-500 text-center max-w-md">
+              Enter a city or location above and click Search to find landlords and tenants.
+            </p>
           </div>
         ) : (
           <PersonGrid
             people={results}
             loading={loading}
+            resultsCount={results.length}
             emptyMessage="No people found in this city. Try another city or change the filter."
           />
         )}

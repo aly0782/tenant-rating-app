@@ -2,25 +2,25 @@ import React from 'react';
 import { Search } from 'lucide-react';
 
 /**
- * TrustNest search bar: white background, icon on left, centered.
+ * TrustNest search bar – matches v0: "Search by name or location".
  */
-export default function SearchBar({ value, onChange, onSubmit, placeholder, loading }) {
+export default function SearchBar({ value, onChange, onSubmit, placeholder = 'Search by name or location', loading }) {
   return (
     <form onSubmit={onSubmit} className="flex justify-center">
-      <div className="flex items-center gap-3 bg-white rounded-xl shadow-lg w-full max-w-xl px-4 py-3.5">
+      <div className="flex items-center gap-3 bg-white rounded-xl shadow-lg w-full max-w-xl px-4 py-3.5 border border-gray-100">
         <Search size={22} className="text-gray-400 shrink-0" aria-hidden />
         <input
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder || 'Enter city (e.g. Lisbon, Porto)'}
+          placeholder={placeholder}
           className="flex-1 min-w-0 py-1 text-gray-900 placeholder-gray-400 focus:outline-none text-base"
-          aria-label="Search by city"
+          aria-label="Search by name or location"
         />
         <button
           type="submit"
           disabled={loading}
-          className="shrink-0 px-6 py-2 rounded-lg font-semibold text-white transition-all disabled:opacity-50"
+          className="shrink-0 px-6 py-2 rounded-lg font-semibold text-white transition-all disabled:opacity-50 hover:opacity-95"
           style={{ backgroundColor: '#0F3460' }}
         >
           {loading ? 'Searching...' : 'Search'}

@@ -21,7 +21,7 @@ export default function NavBar({ user, onLogout }) {
     : '?';
 
   return (
-    <nav className="sticky top-0 z-40 bg-primary shadow-nav">
+    <nav className="sticky top-0 z-40 shadow-nav" style={{ backgroundColor: '#0F3460' }}>
       <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
         <Link
           to="/search"
@@ -30,7 +30,7 @@ export default function NavBar({ user, onLogout }) {
           <span className="bg-white/20 rounded-lg p-1.5">
             <Search size={20} className="text-white" />
           </span>
-          Tenant Rating
+          TrustNest
         </Link>
 
         <div className="flex items-center gap-4">

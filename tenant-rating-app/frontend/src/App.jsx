@@ -2,6 +2,7 @@ import React from 'react';
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import NavBar from './components/NavBar';
+import Footer from './components/Footer';
 import LoginPage from './pages/LoginPage';
 import SearchPeople from './pages/SearchPeople';
 import ProfilePage from './pages/ProfilePage';
@@ -17,9 +18,10 @@ function Layout() {
   return (
     <>
       <NavBar user={user} onLogout={logout} />
-      <main className="min-h-[calc(100vh-3.5rem)] bg-gray-50">
+      <main className="min-h-[calc(100vh-3.5rem)] flex flex-col" style={{ backgroundColor: '#FAFBFC' }}>
         <Outlet />
       </main>
+      <Footer />
     </>
   );
 }
