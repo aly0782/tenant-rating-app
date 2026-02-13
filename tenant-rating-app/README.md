@@ -41,6 +41,28 @@ node run-schema.js
 node run-migration.js migrations/004-profile-fields.sql
 ```
 
+### Production (Render)
+
+The API needs the `reviewed_user_id` column on `reviews` for profile pages. Run once using **Node** (no `psql` needed). Get `DATABASE_URL` from Render → your service → **Environment**.
+
+From the repo **backend** folder:
+
+```bash
+cd tenant-rating-app/backend
+DATABASE_URL='your-render-database-url-here' node run-migration.js migrations/003-people-only.sql
+DATABASE_URL='your-render-database-url-here' node run-migration.js seed-data.sql
+```
+
+Or set it once for the session (replace with your real URL):
+
+```bash
+export DATABASE_URL='postgres://user:pass@host/db?sslmode=require'
+node run-migration.js migrations/003-people-only.sql
+node run-migration.js seed-data.sql
+```
+
+Then redeploy the backend. If the column is missing, profile pages still load but show no reviews until the migration is run.
+
 ## API (TrustNest people-based)
 
 - **GET /api/users/search?city=lisbon&user_type=landlord|tenant** → `{ users: [...] }`
