@@ -3,6 +3,9 @@ const express = require('express');
 const cors = require('cors');
 const { pool } = require('./db');
 const authRoutes = require('./routes/auth');
+const propertiesRoutes = require('./routes/properties');
+const reviewsRoutes = require('./routes/reviews');
+const { getPendingReviewsForLandlord } = require('./routes/reviews');
 const { verifyJWT } = require('./middleware/auth');
 
 const app = express();
@@ -29,10 +32,14 @@ app.get('/api/db/test', async (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/properties', propertiesRoutes);
+app.use('/api/reviews', reviewsRoutes);
 
 app.get('/api/me', verifyJWT, (req, res) => {
   res.json(req.user);
 });
+
+app.get('/api/users/me/pending-reviews', verifyJWT, getPendingReviewsForLandlord);
 
 const server = app.listen(PORT, () => {
   console.log(`✅ Server LISTENING on port ${PORT}`);
