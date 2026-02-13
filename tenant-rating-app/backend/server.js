@@ -21,6 +21,7 @@ app.use(cors({
     'http://127.0.0.1:5173',
     'https://teal-macaron-8d7a65.netlify.app',
     'https://v0-tenant-landlord-platform-olive.vercel.app',
+    'https://tenant-rating-app.vercel.app',
   ],
   credentials: true,
 }));
