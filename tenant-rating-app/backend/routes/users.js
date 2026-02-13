@@ -60,15 +60,26 @@ router.get('/:id', async (req, res) => {
     }
     const user = userResult.rows[0];
 
-    const reviewsResult = await pool.query(
-      `SELECT id, title, description, rating, created_at, reviewer_id
-       FROM reviews
-       WHERE reviewed_user_id = $1
-       ORDER BY created_at DESC`,
-      [id]
-    );
+    let reviews = [];
+    try {
+      const reviewsResult = await pool.query(
+        `SELECT id, title, description, rating, created_at, reviewer_id
+         FROM reviews
+         WHERE reviewed_user_id = $1
+         ORDER BY created_at DESC`,
+        [id]
+      );
+      reviews = reviewsResult.rows;
+    } catch (reviewsErr) {
+      // Column reviewed_user_id missing until migration 003 is run on production
+      if (reviewsErr.code === '42703') {
+        console.warn('GET /api/users/:id reviews skipped (run migration 003-people-only.sql on DB):', reviewsErr.message);
+      } else {
+        throw reviewsErr;
+      }
+    }
 
-    res.json({ user, reviews: reviewsResult.rows });
+    res.json({ user, reviews });
   } catch (err) {
     console.error('GET /api/users/:id error:', err);
     res.status(500).json({ error: err.message });

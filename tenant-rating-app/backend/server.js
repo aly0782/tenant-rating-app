@@ -14,17 +14,23 @@ const PORT = 5001;
 
 console.log('📍 Starting server...');
 
-app.use(cors({
-  origin: [
+// Allow Vercel preview URLs (e.g. tenant-rating-xxx.vercel.app) and production
+const corsOrigin = (origin, cb) => {
+  const allowed = [
     'http://localhost:3000',
     'http://localhost:5173',
     'http://127.0.0.1:5173',
     'https://teal-macaron-8d7a65.netlify.app',
     'https://v0-tenant-landlord-platform-olive.vercel.app',
     'https://tenant-rating-app.vercel.app',
-  ],
-  credentials: true,
-}));
+  ];
+  if (!origin || allowed.includes(origin) || /^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin)) {
+    cb(null, true);
+  } else {
+    cb(null, false);
+  }
+};
+app.use(cors({ origin: corsOrigin, credentials: true }));
 app.use(express.json());
 
 app.get('/api/health', (req, res) => {
