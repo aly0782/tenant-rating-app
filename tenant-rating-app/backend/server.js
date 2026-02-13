@@ -13,7 +13,9 @@ const PORT = 5001;
 
 console.log('📍 Starting server...');
 
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:3000', 'http://localhost:5173', 'https://teal-macaron-8d7a65.netlify.app']
+}));
 app.use(express.json());
 
 app.get('/api/health', (req, res) => {
