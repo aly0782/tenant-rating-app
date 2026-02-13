@@ -3,8 +3,8 @@ import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import NavBar from './components/NavBar';
 import LoginPage from './pages/LoginPage';
-import PropertySearch from './pages/PropertySearch';
-import PropertyDetail from './pages/PropertyDetail';
+import SearchPeople from './pages/SearchPeople';
+import ProfilePage from './pages/ProfilePage';
 
 function RequireAuth({ children }) {
   const { user } = useAuth();
@@ -48,8 +48,8 @@ function AppRoutes() {
           </RequireAuth>
         }
       >
-        <Route path="/search" element={<PropertySearch />} />
-        <Route path="/property/:id" element={<PropertyDetail />} />
+        <Route path="/search" element={<SearchPeople />} />
+        <Route path="/person/:id" element={<ProfilePage />} />
       </Route>
       <Route path="*" element={<Navigate to={user ? '/search' : '/'} replace />} />
     </Routes>

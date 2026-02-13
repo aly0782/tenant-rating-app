@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API = 'http://localhost:5001';
+const API_URL = 'https://tenant-rating-app.onrender.com';
 
 const AuthContext = createContext(null);
 
@@ -15,11 +15,19 @@ export function AuthProvider({ children }) {
       setLoading(false);
       return;
     }
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
     axios
-      .get(`${API}/api/me`, { headers: { Authorization: `Bearer ${token}` } })
+      .get(`${API_URL}/api/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+        signal: controller.signal,
+      })
       .then((res) => setUser(res.data))
       .catch(() => localStorage.removeItem('token'))
-      .finally(() => setLoading(false));
+      .finally(() => {
+        clearTimeout(timeout);
+        setLoading(false);
+      });
   }, []);
 
   const logout = () => {

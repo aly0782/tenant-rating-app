@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Search, MapPin } from 'lucide-react';
 import StarRating from '../components/StarRating';
 
-const API = 'http://localhost:5001';
+const API = 'https://tenant-rating-app.onrender.com';
 
 function SkeletonCard() {
   return (

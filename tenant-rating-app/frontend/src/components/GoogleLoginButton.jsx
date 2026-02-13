@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { GoogleLogin } from '@react-oauth/google';
 
-const API = 'http://localhost:5001';
+const API = 'https://tenant-rating-app.onrender.com';
 
 /**
  * Sends idToken to backend, stores JWT, calls onSuccess(user).

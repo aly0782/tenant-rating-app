@@ -13,7 +13,7 @@ import { useAuth } from '../context/AuthContext';
 import StarRating from '../components/StarRating';
 import ReviewForm from '../components/ReviewForm';
 
-const API = 'http://localhost:5001';
+const API = 'https://tenant-rating-app.onrender.com';
 
 function AvatarInitials({ name }) {
   const initials = name
