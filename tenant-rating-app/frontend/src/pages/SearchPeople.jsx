@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import HeroSection from '../components/HeroSection';
 import SearchBar from '../components/SearchBar';
 import FilterButtons from '../components/FilterButtons';
@@ -8,28 +8,43 @@ const API = 'https://tenant-rating-app.onrender.com';
 
 /**
  * TrustNest search page – matches v0: hero, search by name or location, filters, Browse All + results.
+ * Loads all people on mount so /search shows people immediately.
  */
 export default function SearchPeople() {
   const [city, setCity] = useState('');
   const [filter, setFilter] = useState('');
   const [results, setResults] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [searched, setSearched] = useState(false);
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    const query = city.trim();
-    if (!query) return;
+  const fetchUsers = useCallback((searchQuery, userType) => {
     setLoading(true);
-    setSearched(true);
-    setResults([]);
-    let url = `${API}/api/users/search?city=${encodeURIComponent(query)}`;
-    if (filter) url += `&user_type=${filter}`;
-    fetch(url)
+    let url = `${API}/api/users/search`;
+    const params = new URLSearchParams();
+    if (searchQuery && searchQuery.trim()) params.set('city', searchQuery.trim());
+    if (userType) params.set('user_type', userType);
+    if (params.toString()) url += `?${params.toString()}`;
+    return fetch(url)
       .then((res) => res.json())
       .then((data) => setResults(data?.users ?? []))
       .catch(() => setResults([]))
       .finally(() => setLoading(false));
+  }, []);
+
+  // Load people on mount (all) and when filter changes (current search + filter)
+  useEffect(() => {
+    fetchUsers(city.trim(), filter);
+  }, [filter]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    const query = city.trim();
+    setSearched(true);
+    if (!query) {
+      fetchUsers('', filter);
+      return;
+    }
+    fetchUsers(query, filter);
   };
 
   return (
@@ -48,21 +63,12 @@ export default function SearchPeople() {
       </div>
 
       <div className="max-w-6xl mx-auto px-4 py-10 flex-1">
-        {!searched && !loading ? (
-          <div className="flex flex-col items-center justify-center py-16">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Browse All</h2>
-            <p className="text-gray-500 text-center max-w-md">
-              Enter a city or location above and click Search to find landlords and tenants.
-            </p>
-          </div>
-        ) : (
-          <PersonGrid
-            people={results}
-            loading={loading}
-            resultsCount={results.length}
-            emptyMessage="No people found in this city. Try another city or change the filter."
-          />
-        )}
+        <PersonGrid
+          people={results}
+          loading={loading}
+          resultsCount={results.length}
+          emptyMessage="No people found. Try a different search or filter."
+        />
       </div>
     </div>
   );

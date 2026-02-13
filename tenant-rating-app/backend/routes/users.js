@@ -5,7 +5,7 @@ const router = express.Router();
 
 /**
  * GET /api/users/search
- * Query params: city, user_type (optional)
+ * Query params: city (optional – omit or empty = return all), user_type (optional)
  * Response: { users: [...] }
  */
 router.get('/search', async (req, res) => {
@@ -13,21 +13,25 @@ router.get('/search', async (req, res) => {
     const city = (req.query.city || '').trim();
     const userType = (req.query.user_type || '').toLowerCase();
 
-    if (!city) {
-      return res.status(400).json({ error: 'Query param "city" is required' });
-    }
-
     let query = `
       SELECT id, name, email, user_type, city, avg_rating, review_count
       FROM users
-      WHERE city ILIKE $1
     `;
-    const params = [city];
+    const params = [];
+    const conditions = [];
 
-    if (userType === 'landlord' || userType === 'tenant') {
-      query += ` AND user_type = $2`;
-      params.push(userType);
+    if (city) {
+      params.push(`%${city}%`);
+      conditions.push(`(city ILIKE $${params.length} OR name ILIKE $${params.length})`);
     }
+    if (userType === 'landlord' || userType === 'tenant') {
+      params.push(userType);
+      conditions.push(`user_type = $${params.length}`);
+    }
+    if (conditions.length) {
+      query += ' WHERE ' + conditions.join(' AND ');
+    }
+    query += ' ORDER BY review_count DESC NULLS LAST, avg_rating DESC NULLS LAST';
 
     const result = await pool.query(query, params);
     res.json({ users: result.rows });
