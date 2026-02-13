@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, MapPin, User } from 'lucide-react';
 import StarRating from '../components/StarRating';
@@ -21,28 +21,37 @@ export default function PeopleSearch() {
   const [city, setCity] = useState('');
   const [userType, setUserType] = useState(''); // '', 'landlord', 'tenant'
   const [results, setResults] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [searched, setSearched] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const q = city.trim();
-    if (!q) return;
+  const fetchUsers = useCallback(async (searchCity, type) => {
     setLoading(true);
-    setSearched(true);
-    setResults([]);
     try {
-      let url = `${API}/api/users/search?city=${encodeURIComponent(q)}`;
-      if (userType) url += `&user_type=${userType}`;
+      const params = new URLSearchParams();
+      if (searchCity && searchCity.trim()) params.set('city', searchCity.trim());
+      if (type) params.set('user_type', type);
+      const url = params.toString() ? `${API}/api/users/search?${params.toString()}` : `${API}/api/users/search`;
       const res = await fetch(url);
       const data = await res.json();
-      if (res.ok) setResults(Array.isArray(data) ? data : []);
+      if (res.ok) setResults(Array.isArray(data?.users) ? data.users : (data?.users ?? []));
       else setResults([]);
     } catch {
       setResults([]);
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  // Load people on open (all) and when filter changes. No search required to see everyone.
+  useEffect(() => {
+    fetchUsers(city.trim(), userType);
+  }, [userType]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const q = city.trim();
+    setSearched(true);
+    await fetchUsers(q || '', userType);
   };
 
   return (
@@ -98,9 +107,11 @@ export default function PeopleSearch() {
           </div>
         )}
 
-        {!loading && searched && results.length === 0 && (
+        {!loading && results.length === 0 && (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-16 text-center">
-            <p className="text-lg font-medium text-gray-600">No people found in this city.</p>
+            <p className="text-lg font-medium text-gray-600">
+              {searched ? 'No people found in this city.' : 'No people found. Try again in a moment or check your connection.'}
+            </p>
             <p className="text-sm text-gray-500 mt-1">Try another city or change the filter.</p>
           </div>
         )}
