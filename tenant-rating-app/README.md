@@ -38,3 +38,9 @@ Backend expects `.env`: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `JWT_SECRET`
 4. Click a card (or “View Details”) → **Property detail**: address, landlord, verified reviews. If you’re not the landlord, “Leave a Review” opens the form.
 5. **Leave a Review**: stars, title, description, optional rental dates → Submit. Message: “Review submitted! Waiting for landlord approval.”
 6. As **landlord** (user who created the property): on that property’s page you see “Pending Reviews” with Approve/Reject. Approve or Reject updates the list.
+
+## Design (premium UI)
+
+- **Colors:** Primary blue (`#1e40af`), accent amber (`#f59e0b`), success green, danger red, neutral grays. See `frontend/tailwind.config.js`.
+- **Icons:** `lucide-react` (Search, MapPin, Home, User, Star, CheckCircle, Clock, Plus, X, LogOut, Menu).
+- **To view:** Run frontend (`npm run dev` in `frontend`), open http://localhost:5173, sign in, and use Search → property card → detail page and review form.

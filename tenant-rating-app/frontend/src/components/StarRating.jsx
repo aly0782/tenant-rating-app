@@ -1,36 +1,35 @@
 import React from 'react';
+import { Star } from 'lucide-react';
 
 /**
- * Reusable star rating.
- * @param {number} rating - 1-5
- * @param {function} onChange - (value) => {} when interactive
- * @param {boolean} interactive - if true, stars are clickable
+ * Reusable star rating. Gold when selected, gray when not. Large stars, smooth transitions.
  */
 export default function StarRating({ rating = 0, onChange, interactive = false }) {
+  const size = 24;
+
   const handleClick = (value) => {
     if (interactive && onChange) onChange(value);
   };
 
   return (
-    <div className="flex gap-0.5">
+    <div className="flex gap-0.5 items-center">
       {[1, 2, 3, 4, 5].map((value) => (
         <button
           key={value}
           type="button"
           disabled={!interactive}
           onClick={() => handleClick(value)}
-          className={`p-0.5 focus:outline-none focus:ring-2 focus:ring-amber-400 rounded ${
-            interactive ? 'cursor-pointer hover:opacity-80' : 'cursor-default'
+          className={`p-0.5 focus:outline-none focus:ring-2 focus:ring-primary rounded transition-all duration-200 ${
+            interactive ? 'cursor-pointer hover:scale-110' : 'cursor-default'
           }`}
           aria-label={`${value} star${value > 1 ? 's' : ''}`}
         >
-          <span
-            className={`text-xl ${
-              value <= rating ? 'text-amber-400' : 'text-gray-300'
+          <Star
+            size={size}
+            className={`transition-colors duration-200 ${
+              value <= rating ? 'text-accent fill-accent' : 'text-neutral-border fill-transparent'
             }`}
-          >
-            ★
-          </span>
+          />
         </button>
       ))}
     </div>
