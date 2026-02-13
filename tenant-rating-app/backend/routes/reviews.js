@@ -46,7 +46,7 @@ router.put('/:id/approve', verifyJWT, async (req, res) => {
       return res.status(403).json({ error: 'Only the property landlord can approve this review' });
     }
 
-    await pool.query('UPDATE reviews SET is_verified = true, rejection_reason = NULL WHERE id = $1', [id]);
+    await pool.query('UPDATE reviews SET is_verified = true WHERE id = $1', [id]);
     res.json({ status: 'approved' });
   } catch (err) {
     console.error('PUT /api/reviews/:id/approve error:', err);
