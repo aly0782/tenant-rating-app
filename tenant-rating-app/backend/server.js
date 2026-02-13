@@ -2,6 +2,8 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { pool } = require('./db');
+const authRoutes = require('./routes/auth');
+const { verifyJWT } = require('./middleware/auth');
 
 const app = express();
 const PORT = 5001;
@@ -24,6 +26,12 @@ app.get('/api/db/test', async (req, res) => {
     console.error('❌ /api/db/test error:', err);
     res.status(500).json({ error: err.message });
   }
+});
+
+app.use('/api/auth', authRoutes);
+
+app.get('/api/me', verifyJWT, (req, res) => {
+  res.json(req.user);
 });
 
 const server = app.listen(PORT, () => {
