@@ -4,8 +4,9 @@ const cors = require('cors');
 const { pool } = require('./db');
 const authRoutes = require('./routes/auth');
 const propertiesRoutes = require('./routes/properties');
+const usersRoutes = require('./routes/users');
 const reviewsRoutes = require('./routes/reviews');
-const { getPendingReviewsForLandlord } = require('./routes/reviews');
+const { getPendingReviewsForUser } = require('./routes/reviews');
 const { verifyJWT } = require('./middleware/auth');
 
 const app = express();
@@ -14,7 +15,14 @@ const PORT = 5001;
 console.log('📍 Starting server...');
 
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:5173', 'https://teal-macaron-8d7a65.netlify.app']
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'https://teal-macaron-8d7a65.netlify.app',
+    'https://v0-tenant-landlord-platform-olive.vercel.app',
+  ],
+  credentials: true,
 }));
 app.use(express.json());
 
@@ -40,8 +48,9 @@ app.use('/api/reviews', reviewsRoutes);
 app.get('/api/me', verifyJWT, (req, res) => {
   res.json(req.user);
 });
+app.get('/api/users/me/pending-reviews', verifyJWT, getPendingReviewsForUser);
 
-app.get('/api/users/me/pending-reviews', verifyJWT, getPendingReviewsForLandlord);
+app.use('/api/users', usersRoutes);
 
 const server = app.listen(PORT, () => {
   console.log(`✅ Server LISTENING on port ${PORT}`);
