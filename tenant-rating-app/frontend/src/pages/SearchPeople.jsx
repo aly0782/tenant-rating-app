@@ -26,12 +26,11 @@ export default function SearchPeople() {
     if (userType) params.set('user_type', userType);
     if (params.toString()) url += `?${params.toString()}`;
     return fetch(url)
-      .then((res) => {
-        if (!res.ok) throw new Error(`API ${res.status}`);
-        return res.json();
-      })
-      .then((data) => {
-        setResults(data?.users ?? []);
+      .then((res) => res.json().then((data) => ({ ok: res.ok, data })))
+      .then(({ ok, data }) => {
+        const list = data?.users ?? [];
+        setResults(list);
+        if (!ok && list.length === 0) throw new Error('API error');
       })
       .catch((err) => {
         console.error('Search API error:', err);
@@ -41,8 +40,55 @@ export default function SearchPeople() {
       .finally(() => setLoading(false));
   }, []);
 
-  // Load people on page open (all) and when filter changes. No search required to see everyone.
+  // Load ALL people as soon as the page opens. If backend requires city (old deploy), fallback to "lisbon" so people still show.
   useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    const urlAll = `${API}/api/users/search`;
+    fetch(urlAll)
+      .then((res) => res.json().then((data) => ({ ok: res.ok, data })))
+      .then(({ ok, data }) => {
+        if (cancelled) return;
+        const list = data?.users ?? [];
+        if (list.length > 0) {
+          setResults(list);
+          setLoading(false);
+          return;
+        }
+        // Backend may require city (old version). Fallback: load Lisbon + Porto so all 6 people show.
+        return Promise.all([
+          fetch(`${API}/api/users/search?city=lisbon`).then((r) => r.json()),
+          fetch(`${API}/api/users/search?city=porto`).then((r) => r.json()),
+        ]).then(([a, b]) => {
+          if (cancelled) return;
+          const merged = [...(a?.users ?? []), ...(b?.users ?? [])];
+          const byId = new Map(merged.map((u) => [u.id, u]));
+          setResults([...byId.values()]);
+          if (byId.size > 0) setError(null);
+        });
+      })
+      .catch(() => {
+        if (cancelled) return;
+        return Promise.all([
+          fetch(`${API}/api/users/search?city=lisbon`).then((r) => r.json()),
+          fetch(`${API}/api/users/search?city=porto`).then((r) => r.json()),
+        ]).then(([a, b]) => {
+          if (cancelled) return;
+          const merged = [...(a?.users ?? []), ...(b?.users ?? [])];
+          const byId = new Map(merged.map((u) => [u.id, u]));
+          setResults([...byId.values()]);
+        }).catch(() => setResults([]));
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, []);
+
+  // When filter changes, refetch with current search + filter
+  useEffect(() => {
+    if (filter === '' && !city.trim()) return; // already loaded by effect above
     fetchUsers(city.trim(), filter);
   }, [filter]); // eslint-disable-line react-hooks/exhaustive-deps
 
