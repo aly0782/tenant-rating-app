@@ -1,5 +1,7 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const { pool } = require('./db');
 
 const app = express();
 const PORT = 5001;
@@ -12,6 +14,16 @@ app.use(express.json());
 app.get('/api/health', (req, res) => {
   console.log('🔔 Health endpoint hit');
   res.json({ status: 'Server running', time: new Date() });
+});
+
+app.get('/api/db/test', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT COUNT(*)::int AS count FROM users');
+    res.json({ user_count: result.rows[0].count });
+  } catch (err) {
+    console.error('❌ /api/db/test error:', err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 const server = app.listen(PORT, () => {
